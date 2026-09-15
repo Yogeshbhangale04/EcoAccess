@@ -25,8 +25,9 @@
         <header class="top">
           <button id="menu">☰</button><strong>Feedback & Complaint</strong
           ><span class="top-actions"
-            ><a class="rewards-nav" href="rewards.html" title="Rewards"
-              >🪙 <span>Rewards</span></a
+            ><a class="wallet-nav" href="rewards.html" title="Reward wallet"
+              ><span class="wallet-icon" aria-hidden="true"></span>
+              <b id="walletPoints">0</b> pts</a
             ><span id="user"></span
           ></span>
         </header>
@@ -54,7 +55,11 @@
             </div>
             <div class="panel">
               <h2>My Complaints</h2>
+              <div class="toolbar">
+                <input id="listSearch" type="search" placeholder="Search complaint ID or subject" />
+              </div>
               <div id="complaints"></div>
+              <div id="listPager" class="pager"></div>
             </div>
           </div>
         </main>

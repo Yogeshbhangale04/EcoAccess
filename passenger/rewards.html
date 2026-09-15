@@ -25,24 +25,61 @@
         <header class="top">
           <button id="menu">☰</button><strong>Rewards</strong
           ><span class="top-actions"
-            ><a class="rewards-nav" href="rewards.html" title="Rewards"
-              >🪙 <span>Rewards</span></a
+            ><a class="wallet-nav" href="rewards.html" title="Reward wallet"
+              ><span class="wallet-icon" aria-hidden="true"></span>
+              <b id="walletPoints">0</b> pts</a
             ><span id="user"></span
           ></span>
         </header>
         <main class="content">
           <h1>Rewards</h1>
+          <p class="muted">Collect points from approved waste disposal. At 100 points you can redeem a discount coupon.</p>
           <div class="stats">
             <div>Current Points<b id="rpoints">0</b></div>
+            <div>Coupon if redeemed now<b id="rcouponPreview">₹0</b></div>
+            <div>Active coupons<b id="ractive">0</b></div>
             <div>Redemptions<b id="rcount">0</b></div>
           </div>
-          <div class="panel">
-            <h2>Reward Catalog</h2>
-            <div class="grid3" id="catalog"></div>
+          <div class="grid2">
+            <div class="panel">
+              <h2>Redeem Points</h2>
+              <div id="catalog"></div>
+            </div>
+            <div class="panel">
+              <h2>How it works</h2>
+              <p>✓ Earn 20 points when a waste photo is accepted.</p>
+              <p>✓ Redeem only after you have at least 100 points.</p>
+              <p>✓ Coupon value = your points × 0.5 (100 pts → ₹50).</p>
+              <p>✓ Use the coupon for resource prebooking or to reduce train fare.</p>
+              <p>✓ The coupon expires after exactly 24 hours of generation.</p>
+            </div>
           </div>
           <div class="panel">
+            <h2>My Coupons</h2>
+            <div id="couponList"></div>
+          </div>
+          <div class="panel submission-history">
             <h2>Redemption History</h2>
-            <div id="history"></div>
+            <div class="toolbar">
+              <input id="redeemSearch" type="search" placeholder="Search redemption ID" />
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Redemption ID</th>
+                    <th>Coupon</th>
+                    <th>Points</th>
+                    <th>Value</th>
+                    <th>Status</th>
+                    <th>Issued</th>
+                    <th>Expires</th>
+                  </tr>
+                </thead>
+                <tbody id="history"></tbody>
+              </table>
+            </div>
+            <div id="redeemPager" class="pager"></div>
           </div>
         </main>
       </section>

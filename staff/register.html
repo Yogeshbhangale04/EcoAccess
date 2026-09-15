@@ -11,19 +11,14 @@
       <div class="form-card">
         <a href="../login.html">← Login</a>
         <h2>Staff Registration</h2>
-        <p>QTP verification is simulated.</p>
-        <form
-          onsubmit="
-            event.preventDefault();
-            toast('QTP verification submitted for admin approval.');
-          "
-        >
-          <label>Name<input required /></label
+        <p>OTP verification is simulated.</p>
+        <form id="staffRegister" novalidate>
+          <label>Name<input id="staffName" maxlength="20" required /></label
           ><label>Employee ID<input required /></label
-          ><label>Mobile<input required /></label
-          ><label>Email<input type="email" required /></label
+          ><label>Mobile<input id="staffMobile" type="tel" inputmode="numeric" maxlength="10" required /></label
+          ><label>Email<input id="staffEmail" type="email" required /></label
           ><label>Password<input type="password" required /></label
-          ><button class="btn full">Submit for QTP Verification</button>
+          ><button class="btn full">Submit for OTP Verification</button>
         </form>
       </div>
     </div>

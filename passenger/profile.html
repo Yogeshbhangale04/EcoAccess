@@ -25,8 +25,9 @@
         <header class="top">
           <button id="menu">☰</button><strong>My Profile</strong
           ><span class="top-actions"
-            ><a class="rewards-nav" href="rewards.html" title="Rewards"
-              >🪙 <span>Rewards</span></a
+            ><a class="wallet-nav" href="rewards.html" title="Reward wallet"
+              ><span class="wallet-icon" aria-hidden="true"></span>
+              <b id="walletPoints">0</b> pts</a
             ><span id="user"></span
           ></span>
         </header>
@@ -50,8 +51,8 @@
               <div><span>Mobile</span><b id="pmobileView"></b></div>
               <div><span>Email</span><b id="pemailView"></b></div>
             </div>
-            <form id="profile" class="profile-edit hidden">
-              <label>Name<input id="pname" required /></label
+            <form id="profile" class="profile-edit hidden" novalidate>
+              <label>Name<input id="pname" maxlength="20" required /></label
               ><label>Mobile<input id="pmobile" disabled /></label
               ><label>Email<input id="pemail" type="email" required /></label
               ><button class="btn" type="submit">Update</button>
@@ -65,7 +66,7 @@
     <script src="../js/dashboard.js"></script>
       <script>
       function initProfile(u){
-        $('#pnameView').textContent=u.name;$('#pmobileView').textContent=u.mobile;$('#pemailView').textContent=u.email;$('#pname').value=u.name;$('#pmobile').value=u.mobile;$('#pemail').value=u.email;$('#editProfile').onclick=()=>{$('#profileDetails').classList.add('hidden');$('#profile').classList.remove('hidden');$('#editProfile').classList.add('hidden');$('#pname').focus()};$('#profile').onsubmit=e=>{e.preventDefault();let a=get('passengers'),x=a.find(y=>y.id===u.id);x.name=$('#pname').value.trim();x.email=$('#pemail').value.trim();set('passengers',a);set('session',{role:'passenger',...x});$('#pnameView').textContent=x.name;$('#pemailView').textContent=x.email;$('#profileDetails').classList.remove('hidden');$('#profile').classList.add('hidden');$('#editProfile').classList.remove('hidden');$('#user').textContent=x.name;toast('Profile updated.')}}
+        $('#pnameView').textContent=u.name;$('#pmobileView').textContent=u.mobile;$('#pemailView').textContent=u.email;$('#pname').value=u.name;$('#pmobile').value=u.mobile;$('#pemail').value=u.email;$('#editProfile').onclick=()=>{$('#profileDetails').classList.add('hidden');$('#profile').classList.remove('hidden');$('#editProfile').classList.add('hidden');$('#pname').focus()};$('#profile').onsubmit=e=>{e.preventDefault();const n=personNameError($('#pname').value);if(n)return toast(n,true);const em=emailError($('#pemail').value);if(em)return toast(em,true);let a=get('passengers'),x=a.find(y=>y.id===u.id);x.name=$('#pname').value.replace(/\s+/g,' ').trim();x.email=$('#pemail').value.trim();set('passengers',a);set('session',{role:'passenger',...x});$('#pnameView').textContent=x.name;$('#pemailView').textContent=x.email;$('#profileDetails').classList.remove('hidden');$('#profile').classList.add('hidden');$('#editProfile').classList.remove('hidden');$('#user').textContent=x.name;toast('Profile updated.')}}
       </script>
   </body>
 </html>

@@ -25,8 +25,9 @@
         <header class="top">
           <button id="menu">☰</button><strong>Create Booking</strong
           ><span class="top-actions"
-            ><a class="rewards-nav" href="rewards.html" title="Rewards"
-              >🪙 <span>Rewards</span></a
+            ><a class="wallet-nav" href="rewards.html" title="Reward wallet"
+              ><span class="wallet-icon" aria-hidden="true"></span>
+              <b id="walletPoints">0</b> pts</a
             ><span id="user"></span
           ></span>
         </header>
@@ -89,6 +90,23 @@
             <div id="step3" class="hidden">
               <h2>Availability</h2>
               <div class="notice" id="avail"></div>
+              <div id="availExtras" class="porter-details">
+                <label>Number of Passenger<input id="passengerCount" type="number" min="1" max="8" value="1" required /></label>
+                <label>Pick Platform<select id="pickPlatform">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select></label>
+                <label>Drop Platform<select id="dropPlatform">
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                  </select></label>
+              </div>
               <button class="back-btn" type="button" onclick="show(2)" title="Back to service selection" aria-label="Back to service selection">←</button> <button class="btn" id="next3">Continue to Fare →</button>
             </div>
             <div id="step4" class="hidden">
@@ -96,8 +114,17 @@
               <div class="fare">
                 <span>Base <b id="base">₹0</b></span
                 ><span>Tax 5% <b id="tax">₹0</b></span
-                ><strong>Total <b id="total">₹0</b></strong>
+                ><div id="couponBox">
+                  <label>Discount coupon
+                    <select id="couponSelect">
+                      <option value="">No coupon</option>
+                    </select>
+                  </label>
+                  <span>Coupon discount <b id="discount">₹0</b></span>
+                </div>
+                <strong>Payable <b id="total">₹0</b></strong>
               </div>
+              <p class="muted">Redeem 100+ reward points to generate a coupon (points × 0.5). Apply it here to reduce the resource booking fare.</p>
               <button class="back-btn" type="button" onclick="show(3)" title="Back to availability" aria-label="Back to availability">←</button> <button class="btn" id="next4">Continue to Payment →</button>
             </div>
             <div id="step5" class="hidden">
@@ -118,7 +145,6 @@
               <p class="payment-success">✓ Payment is successful</p>
               <h2>✓ Booking Confirmed</h2>
               <div class="booking" id="bookingId"></div>
-              <p id="summary"></p>
               <a class="btn" href="tracking.html">Track Booking</a>
             </div>
           </div>
