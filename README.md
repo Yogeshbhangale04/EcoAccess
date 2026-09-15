@@ -1,4 +1,4 @@
-# RailEase
+# EcoAccess
 
 Open `index.html` in VS Code with Live Server (recommended) or directly in a browser.
 

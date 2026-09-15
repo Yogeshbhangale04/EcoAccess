@@ -1,1 +1,33 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Staff Registration</title><link rel="stylesheet" href="../css/style.css"></head><body><div class="center"><div class="form-card"><a href="../login.html">← Login</a><h2>Staff Registration</h2><p>QTP verification is simulated.</p><form onsubmit="event.preventDefault();toast('QTP verification submitted for admin approval.')"><label>Name<input required></label><label>Employee ID<input required></label><label>Mobile<input required></label><label>Email<input type="email" required></label><label>Password<input type="password" required></label><button class="btn full">Submit for QTP Verification</button></form></div></div><div id="toast"></div><script src="../js/app.js"></script></body></html>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Staff Registration</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="center">
+      <div class="form-card">
+        <a href="../login.html">← Login</a>
+        <h2>Staff Registration</h2>
+        <p>QTP verification is simulated.</p>
+        <form
+          onsubmit="
+            event.preventDefault();
+            toast('QTP verification submitted for admin approval.');
+          "
+        >
+          <label>Name<input required /></label
+          ><label>Employee ID<input required /></label
+          ><label>Mobile<input required /></label
+          ><label>Email<input type="email" required /></label
+          ><label>Password<input type="password" required /></label
+          ><button class="btn full">Submit for QTP Verification</button>
+        </form>
+      </div>
+    </div>
+    <div id="toast"></div>
+    <script src="../js/app.js"></script>
+  </body>
+</html>
