@@ -1,106 +1,194 @@
 <!doctype html>
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Login</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body>
+  <body>
     <div class="auth">
-        <div class="auth-side"><a class="brand white" href="index.html"><b>EA</b> EcoAccess</a>
-            <h1>Welcome back.</h1>
-            <p>Book assistance and follow your journey with confidence.</p>
+      <div class="auth-side">
+        <a class="brand white" href="index.html"><b>EA</b> EcoAccess</a>
+        <h1>Welcome back.</h1>
+        <p>Book assistance and follow your journey with confidence.</p>
+      </div>
+      <div class="form-card">
+        <a href="index.html">← Home</a>
+        <div class="tabs">
+          <button class="active" data-role="passenger">Passenger</button
+          ><button data-role="staff">Staff</button
+          ><button data-role="admin">Admin</button>
         </div>
-        <div class="form-card"><a href="index.html">← Home</a>
-            <div class="tabs"><button class="active" data-role="passenger">Passenger</button><button
-                    data-role="staff">Staff</button><button data-role="admin">Admin</button></div>
-            <h2>Sign in</h2>
-            <form id="loginForm" novalidate>
-                <label id="idLabel">Mobile Number<span class="phone-field"><span class="phone-code">+91</span><input id="identity" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="9876543210" required></span><span class="field-error" id="identityError"></span></label>
-                <label>Password<input id="password" type="password" placeholder="Enter password" required><span class="field-error" id="passwordError"></span></label>
-                <button class="btn full">Sign In</button>
-            </form>
-            <div class="demo" id="demo">Passenger: +91 9876543210 / Passenger@123</div>
-            <p>New passenger? <a href="register.html">Register</a> · <a href="#" id="forgotLink">Forgot Password?</a>
-            </p>
-            <p class="small muted">Staff demo: select <b>Staff</b> above → STF1001 / Staff@123</p>
+        <h2>Sign in</h2>
+        <form id="loginForm" novalidate>
+          <label id="idLabel"
+            >Mobile Number<span class="phone-field"
+              ><span class="phone-code">+91</span
+              ><input
+                id="identity"
+                type="tel"
+                inputmode="numeric"
+                maxlength="10"
+                autocomplete="tel"
+                placeholder="9876543210"
+                required /></span
+            ><span class="field-error" id="identityError"></span
+          ></label>
+          <label
+            >Password<input
+              id="password"
+              type="password"
+              placeholder="Enter password"
+              required /><span class="field-error" id="passwordError"></span
+          ></label>
+          <button class="btn full">Sign In</button>
+        </form>
+        <div class="demo" id="demo">
+          Passenger: +91 9876543210 / Passenger@123
         </div>
+        <p>
+          New passenger? <a href="register.html">Register</a> ·
+          <a href="#" id="forgotLink">Forgot Password?</a>
+        </p>
+        <p class="small muted">
+          Staff demo: select <b>Staff</b> above → STF1001 / Staff@123
+        </p>
+      </div>
     </div>
     <div id="forgotModal" class="modal hidden">
-        <div class="modalbox"><button class="close-btn" onclick="closeForgotModal()">✕</button>
-            <h2>Reset Password</h2>
-            <div id="forgotStep1">
-                <p>Select your role and enter your identity to reset your password.</p><label>Role<select id="frole">
-                        <option value="passenger">Passenger</option>
-                        <option value="staff">Staff</option>
-                    </select></label><label id="fidLabel">Mobile Number<span class="phone-field"><span class="phone-code">+91</span><input id="fidentity" type="tel" inputmode="numeric" maxlength="10" required
-                        placeholder="9876543210"></span><span class="field-error" id="fidentityError"></span></label><button class="btn full" onclick="verifyIdentity()">Verify
-                    Identity</button>
-            </div>
-            <div id="forgotStep2" class="hidden">
-                <p id="userInfo"></p><label>New Password<input id="newPassword" type="password" required
-                        placeholder="8+ chars with upper, lower, number"><span class="field-error" id="newPasswordError"></span></label><button class="btn full"
-                    onclick="resetPassword()">Reset Password</button></button>
-            </div>
+      <div class="modalbox">
+        <button class="close-btn" onclick="closeForgotModal()">✕</button>
+        <h2>Reset Password</h2>
+        <div id="forgotStep1">
+          <p>
+            Select your role and enter your identity to reset your password.
+          </p>
+          <label
+            >Role<select id="frole">
+              <option value="passenger">Passenger</option>
+              <option value="staff">Staff</option>
+            </select></label
+          ><label id="fidLabel"
+            >Mobile Number<span class="phone-field"
+              ><span class="phone-code">+91</span
+              ><input
+                id="fidentity"
+                type="tel"
+                inputmode="numeric"
+                maxlength="10"
+                required
+                placeholder="9876543210" /></span
+            ><span class="field-error" id="fidentityError"></span></label
+          ><button class="btn full" onclick="verifyIdentity()">
+            Verify Identity
+          </button>
         </div>
+        <div id="forgotStep2" class="hidden">
+          <p id="userInfo"></p>
+          <label
+            >New Password<input
+              id="newPassword"
+              type="password"
+              required
+              placeholder="8+ chars with upper, lower, number" /><span
+              class="field-error"
+              id="newPasswordError"
+            ></span
+          ></label>
+          <button class="btn full" onclick="resetPassword()">
+            Reset Password
+          </button>
+        </div>
+      </div>
     </div>
     <div id="toast"></div>
     <script src="js/app.js"></script>
     <script>
-      const forgotIdErr = () => document.getElementById('fidentityError');
-      const forgotPwErr = () => document.getElementById('newPasswordError');
-      document.getElementById('forgotLink').onclick = e => { e.preventDefault(); document.getElementById('forgotModal').classList.remove('hidden') };
-      document.getElementById('frole').onchange = () => {
-        let role = document.getElementById('frole').value, label = document.getElementById('fidLabel');
-        label.firstChild.textContent = role === 'passenger' ? 'Mobile Number' : 'Employee ID';
-        document.getElementById('fidentity').placeholder = role === 'passenger' ? '9876543210' : 'STF1001';
-        document.getElementById('fidentity').value = '';
-        setFieldError(forgotIdErr(), '');
+      const forgotIdErr = () => document.getElementById("fidentityError");
+      const forgotPwErr = () => document.getElementById("newPasswordError");
+      document.getElementById("forgotLink").onclick = (e) => {
+        e.preventDefault();
+        document.getElementById("forgotModal").classList.remove("hidden");
       };
-      document.getElementById('fidentity').addEventListener('input', () => setFieldError(forgotIdErr(), ''));
-      document.getElementById('newPassword').addEventListener('input', () => setFieldError(forgotPwErr(), ''));
+      document.getElementById("frole").onchange = () => {
+        let role = document.getElementById("frole").value,
+          label = document.getElementById("fidLabel");
+        label.firstChild.textContent =
+          role === "passenger" ? "Mobile Number" : "Employee ID";
+        document.getElementById("fidentity").placeholder =
+          role === "passenger" ? "9876543210" : "STF1001";
+        document.getElementById("fidentity").value = "";
+        setFieldError(forgotIdErr(), "");
+      };
+      document
+        .getElementById("fidentity")
+        .addEventListener("input", () => setFieldError(forgotIdErr(), ""));
+      document
+        .getElementById("newPassword")
+        .addEventListener("input", () => setFieldError(forgotPwErr(), ""));
       function closeForgotModal() {
-        document.getElementById('forgotModal').classList.add('hidden');
-        document.getElementById('forgotStep1').classList.remove('hidden');
-        document.getElementById('forgotStep2').classList.add('hidden');
-        document.getElementById('fidentity').value = '';
-        document.getElementById('newPassword').value = '';
-        setFieldError(forgotIdErr(), '');
-        setFieldError(forgotPwErr(), '');
+        document.getElementById("forgotModal").classList.add("hidden");
+        document.getElementById("forgotStep1").classList.remove("hidden");
+        document.getElementById("forgotStep2").classList.add("hidden");
+        document.getElementById("fidentity").value = "";
+        document.getElementById("newPassword").value = "";
+        setFieldError(forgotIdErr(), "");
+        setFieldError(forgotPwErr(), "");
       }
       function verifyIdentity() {
-        let role = document.getElementById('frole').value, identity = document.getElementById('fidentity').value.trim(), user = null;
-        setFieldError(forgotIdErr(), '');
-        if (role === 'passenger') {
+        let role = document.getElementById("frole").value,
+          identity = document.getElementById("fidentity").value.trim(),
+          user = null;
+        setFieldError(forgotIdErr(), "");
+        if (role === "passenger") {
           const err = indianMobileError(identity);
           if (err) return setFieldError(forgotIdErr(), err);
-          user = get('passengers', []).find(x => sameIndianMobile(x.mobile, identity));
-        } else if (role === 'staff') {
-          if (!identity.trim()) return setFieldError(forgotIdErr(), 'Enter Employee ID.');
-          user = get('staff', []).find(x => x.employeeId.toUpperCase() === identity.toUpperCase());
+          user = get("passengers", []).find((x) =>
+            sameIndianMobile(x.mobile, identity),
+          );
+        } else if (role === "staff") {
+          if (!identity.trim())
+            return setFieldError(forgotIdErr(), "Enter Employee ID.");
+          user = get("staff", []).find(
+            (x) => x.employeeId.toUpperCase() === identity.toUpperCase(),
+          );
         }
-        if (!user) return setFieldError(forgotIdErr(), 'No account found with this identity.');
-        document.getElementById('userInfo').textContent = `Found: ${user.name || user.id}`;
-        document.getElementById('forgotStep1').classList.add('hidden');
-        document.getElementById('forgotStep2').classList.remove('hidden');
+        if (!user)
+          return setFieldError(
+            forgotIdErr(),
+            "No account found with this identity.",
+          );
+        document.getElementById("userInfo").textContent =
+          `Found: ${user.name || user.id}`;
+        document.getElementById("forgotStep1").classList.add("hidden");
+        document.getElementById("forgotStep2").classList.remove("hidden");
         window.currentUser = { ...user, role };
       }
       function resetPassword() {
-        let pwd = document.getElementById('newPassword').value;
-        setFieldError(forgotPwErr(), '');
-        if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(pwd)) return setFieldError(forgotPwErr(), 'Password needs 8+ chars, uppercase, lowercase and number.');
-        let list = get(window.currentUser.role === 'passenger' ? 'passengers' : 'staff', []), idx = list.findIndex(x => x.id === window.currentUser.id);
+        let pwd = document.getElementById("newPassword").value;
+        setFieldError(forgotPwErr(), "");
+        if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(pwd))
+          return setFieldError(
+            forgotPwErr(),
+            "Password needs 8+ chars, uppercase, lowercase and number.",
+          );
+        let list = get(
+            window.currentUser.role === "passenger" ? "passengers" : "staff",
+            [],
+          ),
+          idx = list.findIndex((x) => x.id === window.currentUser.id);
         if (idx >= 0) {
           list[idx].password = pwd;
-          set(window.currentUser.role === 'passenger' ? 'passengers' : 'staff', list);
-          toast('Password reset successfully!');
+          set(
+            window.currentUser.role === "passenger" ? "passengers" : "staff",
+            list,
+          );
+          toast("Password reset successfully!");
           setTimeout(() => closeForgotModal(), 500);
         }
       }
     </script>
-</body>
-
+  </body>
 </html>

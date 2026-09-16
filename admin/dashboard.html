@@ -1,1 +1,65 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard</title><link rel="stylesheet" href="../css/style.css"></head><body><div class="app"><aside><a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a><nav><a href="dashboard.html">Dashboard</a><a href="manage-staff.html">Staff / Porter</a><a href="manage-wheelchairs.html">Wheelchairs</a><a href="manage-vehicles.html">Vehicles</a><a href="monitor-services.html">Monitor Services</a><a href="review-waste.html">Waste Review</a><a href="manage-rewards.html">Rewards</a><a href="redemptions.html">Redemptions</a><a href="complaints.html">Complaints</a><a href="availability.html">Availability</a></nav><button data-logout class="sidebtn">Logout</button></aside><section class="main"><header class="top"><button id="menu">☰</button><strong>Admin Dashboard</strong><span id="user"></span></header><main class="content"><h1>Admin Dashboard</h1><div class="stats kpis"><div>Assignment pending for approval<b id="kpiAssign">0</b></div><div>Awaiting waste submission reviews<b id="kpiWaste">0</b></div><div>Total Bookings<b id="kpiBookings">0</b></div><div>Open Complaints<b id="kpiComplaints">0</b></div></div><div class="grid2 equal"><div class="panel"><h2>Monthly Bookings</h2><canvas id="chart" height="220"></canvas></div><div class="panel control-panel"><h2>Control Center</h2><div class="control-grid"><a class="card" href="manage-staff.html">Staff</a><a class="card" href="manage-wheelchairs.html">Wheelchairs</a><a class="card" href="manage-vehicles.html">Vehicles</a><a class="card" href="review-waste.html">Waste</a><a class="card" href="manage-rewards.html">Rewards</a><a class="card" href="complaints.html">Complaints</a></div></div></div></main></section></div><div id="toast"></div><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="../js/app.js"></script><script src="../js/admin.js"></script></body></html>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside>
+        <a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a>
+        <nav>
+          <a href="dashboard.html">Dashboard</a
+          ><a href="manage-staff.html">Staff / Porter</a
+          ><a href="manage-wheelchairs.html">Wheelchairs</a
+          ><a href="manage-vehicles.html">Vehicles</a
+          ><a href="monitor-services.html">Monitor Services</a
+          ><a href="review-waste.html">Waste Review</a
+          ><a href="manage-rewards.html">Rewards</a
+          ><a href="redemptions.html">Redemptions</a
+          ><a href="complaints.html">Complaints</a
+          ><a href="availability.html">Availability</a>
+        </nav>
+        <button data-logout class="sidebtn">Logout</button>
+      </aside>
+      <section class="main">
+        <header class="top">
+          <button id="menu">☰</button><strong>Admin Dashboard</strong
+          ><span id="user"></span>
+        </header>
+        <main class="content">
+          <h1>Admin Dashboard</h1>
+          <div class="stats kpis">
+            <div>Assignment pending for approval<b id="kpiAssign">0</b></div>
+            <div>Awaiting waste submission reviews<b id="kpiWaste">0</b></div>
+            <div>Total Bookings<b id="kpiBookings">0</b></div>
+            <div>Open Complaints<b id="kpiComplaints">0</b></div>
+          </div>
+          <div class="grid2 equal">
+            <div class="panel">
+              <h2>Monthly Bookings</h2>
+              <canvas id="chart" height="220"></canvas>
+            </div>
+            <div class="panel control-panel">
+              <h2>Control Center</h2>
+              <div class="control-grid">
+                <a class="card" href="manage-staff.html">Staff</a
+                ><a class="card" href="manage-wheelchairs.html">Wheelchairs</a
+                ><a class="card" href="manage-vehicles.html">Vehicles</a
+                ><a class="card" href="review-waste.html">Waste</a
+                ><a class="card" href="manage-rewards.html">Rewards</a
+                ><a class="card" href="complaints.html">Complaints</a>
+              </div>
+            </div>
+          </div>
+        </main>
+      </section>
+    </div>
+    <div id="toast"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/admin.js"></script>
+  </body>
+</html>

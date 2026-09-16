@@ -44,19 +44,28 @@
                     <option>2</option>
                     <option>1</option>
                   </select></label
-                ><label>Subject<input id="subject" required maxlength="80" /><span class="field-error" id="subjectError"></span></label
                 ><label
-                  >Description<textarea
-                    id="description"
-                    required
-                  ></textarea><span class="field-error" id="descriptionError"></span></label
+                  >Subject<input id="subject" required maxlength="80" /><span
+                    class="field-error"
+                    id="subjectError"
+                  ></span></label
+                ><label
+                  >Description<textarea id="description" required></textarea
+                  ><span
+                    class="field-error"
+                    id="descriptionError"
+                  ></span></label
                 ><button class="btn">Submit</button>
               </form>
             </div>
             <div class="panel">
               <h2>My Complaints</h2>
               <div class="toolbar">
-                <input id="listSearch" type="search" placeholder="Search complaint ID or subject" />
+                <input
+                  id="listSearch"
+                  type="search"
+                  placeholder="Search complaint ID or subject"
+                />
               </div>
               <div id="complaints"></div>
               <div id="listPager" class="pager"></div>

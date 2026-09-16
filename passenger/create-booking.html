@@ -45,8 +45,21 @@
             <div id="step1">
               <h2>Journey Details</h2>
               <div class="formgrid">
-                <label>PNR<input id="pnr" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="10-digit PNR" /></label
-                ><label>Train Number<input id="train" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="5-digit train number" required /></label
+                <label
+                  >PNR<input
+                    id="pnr"
+                    inputmode="numeric"
+                    maxlength="10"
+                    pattern="[0-9]{10}"
+                    placeholder="10-digit PNR" /></label
+                ><label
+                  >Train Number<input
+                    id="train"
+                    inputmode="numeric"
+                    maxlength="5"
+                    pattern="[0-9]{5}"
+                    placeholder="5-digit train number"
+                    required /></label
                 ><label
                   >Journey Date<input id="date" type="date" required /></label
                 ><label
@@ -56,8 +69,13 @@
                     <option>Pune Junction</option>
                   </select></label
                 ><label
-                  >Platform Number<input id="platform" inputmode="numeric" maxlength="2" placeholder="Enter platform number" required /></label
-                >
+                  >Platform Number<input
+                    id="platform"
+                    inputmode="numeric"
+                    maxlength="2"
+                    placeholder="Enter platform number"
+                    required
+                /></label>
               </div>
               <button class="btn" id="next1">Proceed →</button>
             </div>
@@ -73,34 +91,88 @@
                 </button>
               </div>
               <div id="porterDetails" class="porter-details hidden">
-                <label>Weight Range per Bag<select id="porterWeight">
-                  <option value="150">1–10 kg · ₹150 per bag</option>
-                  <option value="200">11–20 kg · ₹200 per bag</option>
-                  <option value="275">21–30 kg · ₹275 per bag</option>
-                  <option value="350">31+ kg · ₹350 per bag</option>
-                </select></label>
-                <label>Number of Bags<input id="porterBags" type="number" min="1" max="20" value="1" required></label>
-                <p class="notice">If the porter finds that the actual weight is higher than selected, additional charges may apply.</p>
+                <label
+                  >Weight Range per Bag<select id="porterWeight">
+                    <option value="150">1–10 kg · ₹150 per bag</option>
+                    <option value="200">11–20 kg · ₹200 per bag</option>
+                    <option value="275">21–30 kg · ₹275 per bag</option>
+                    <option value="350">31+ kg · ₹350 per bag</option>
+                  </select></label
+                >
+                <label
+                  >Number of Bags<input
+                    id="porterBags"
+                    type="number"
+                    min="1"
+                    max="20"
+                    value="1"
+                    required
+                /></label>
+                <p class="notice">
+                  If the porter finds that the actual weight is higher than
+                  selected, additional charges may apply.
+                </p>
               </div>
-              <br /><button class="back-btn" type="button" onclick="show(1)" title="Back to journey details" aria-label="Back to journey details">←</button> <button class="btn" id="next2">Check Availability →</button>
+              <br /><button
+                class="back-btn"
+                type="button"
+                onclick="show(1)"
+                title="Back to journey details"
+                aria-label="Back to journey details"
+              >
+                ←
+              </button>
+              <button class="btn" id="next2">Check Availability →</button>
             </div>
             <div id="step3" class="hidden">
               <h2>Availability</h2>
               <div class="notice" id="avail"></div>
               <div id="availExtras" class="porter-details">
-                <label>Number of Passenger<input id="passengerCount" type="number" min="1" max="8" value="1" required /></label>
-                <label>Pick Platform<input id="pickPlatform" inputmode="numeric" maxlength="2" placeholder="Enter pick platform" required /></label>
-                <label>Drop Platform<input id="dropPlatform" inputmode="numeric" maxlength="2" placeholder="Enter drop platform" required /></label>
+                <label
+                  >Number of Passenger<input
+                    id="passengerCount"
+                    type="number"
+                    min="1"
+                    max="8"
+                    value="1"
+                    required
+                /></label>
+                <label
+                  >Pick Platform<input
+                    id="pickPlatform"
+                    inputmode="numeric"
+                    maxlength="2"
+                    placeholder="Enter pick platform"
+                    required
+                /></label>
+                <label
+                  >Drop Platform<input
+                    id="dropPlatform"
+                    inputmode="numeric"
+                    maxlength="2"
+                    placeholder="Enter drop platform"
+                    required
+                /></label>
               </div>
-              <button class="back-btn" type="button" onclick="show(2)" title="Back to service selection" aria-label="Back to service selection">←</button> <button class="btn" id="next3">Continue to Fare →</button>
+              <button
+                class="back-btn"
+                type="button"
+                onclick="show(2)"
+                title="Back to service selection"
+                aria-label="Back to service selection"
+              >
+                ←
+              </button>
+              <button class="btn" id="next3">Continue to Fare →</button>
             </div>
             <div id="step4" class="hidden">
               <h2>Fare Calculation</h2>
               <div class="fare">
                 <span>Base <b id="base">₹0</b></span
-                ><span>Tax 5% <b id="tax">₹0</b></span
-                ><div id="couponBox">
-                  <label>Discount coupon
+                ><span>Tax 5% <b id="tax">₹0</b></span>
+                <div id="couponBox">
+                  <label
+                    >Discount coupon
                     <select id="couponSelect">
                       <option value="">No coupon</option>
                     </select>
@@ -109,32 +181,94 @@
                 </div>
                 <strong>Payable <b id="total">₹0</b></strong>
               </div>
-              <p class="muted">Redeem 100+ reward points to generate a coupon (points × 0.5). Apply it here to reduce the resource booking fare.</p>
-              <button class="back-btn" type="button" onclick="show(3)" title="Back to availability" aria-label="Back to availability">←</button> <button class="btn" id="next4">Continue to Payment →</button>
+              <p class="muted">
+                Redeem 100+ reward points to generate a coupon (points × 0.5).
+                Apply it here to reduce the resource booking fare.
+              </p>
+              <button
+                class="back-btn"
+                type="button"
+                onclick="show(3)"
+                title="Back to availability"
+                aria-label="Back to availability"
+              >
+                ←
+              </button>
+              <button class="btn" id="next4">Continue to Payment →</button>
             </div>
             <div id="step5" class="hidden">
               <h2>Payment</h2>
               <div class="pay-methods">
-                <label class="pay-choice"><input type="radio" name="pay" value="upi" id="payUpi" checked /> UPI</label>
-                <label class="pay-choice"><input type="radio" name="pay" value="card" id="payCard" /> Card</label>
+                <label class="pay-choice"
+                  ><input
+                    type="radio"
+                    name="pay"
+                    value="upi"
+                    id="payUpi"
+                    checked
+                  />
+                  UPI</label
+                >
+                <label class="pay-choice"
+                  ><input type="radio" name="pay" value="card" id="payCard" />
+                  Card</label
+                >
               </div>
               <div id="upiPanel" class="scanner-panel">
-                <canvas id="paymentQr" width="210" height="210" aria-label="Dummy UPI QR code"></canvas>
+                <canvas
+                  id="paymentQr"
+                  width="210"
+                  height="210"
+                  aria-label="Dummy UPI QR code"
+                ></canvas>
                 <p id="scannerReference"></p>
                 <small>Scan this dummy QR code to complete UPI payment.</small>
               </div>
               <div id="cardPanel" class="card-pay hidden">
-                <label>Name on card<input id="cardName" autocomplete="cc-name" placeholder="Name as printed on card" /></label>
-                <label>Card number<input id="cardNumber" inputmode="numeric" maxlength="19" autocomplete="cc-number" placeholder="ACCT-000003" /></label>
+                <label
+                  >Name on card<input
+                    id="cardName"
+                    autocomplete="cc-name"
+                    placeholder="Name as printed on card"
+                /></label>
+                <label
+                  >Card number<input
+                    id="cardNumber"
+                    inputmode="numeric"
+                    maxlength="19"
+                    autocomplete="cc-number"
+                    placeholder="ACCT-000003"
+                /></label>
                 <div class="formgrid">
-                  <label>Expiry (MM/YY)<input id="cardExpiry" maxlength="5" placeholder="MM/YY" /></label>
-                  <label>CVV<input id="cardCvv" inputmode="numeric" maxlength="4" autocomplete="cc-csc" placeholder="123" /></label>
+                  <label
+                    >Expiry (MM/YY)<input
+                      id="cardExpiry"
+                      maxlength="5"
+                      placeholder="MM/YY"
+                  /></label>
+                  <label
+                    >CVV<input
+                      id="cardCvv"
+                      inputmode="numeric"
+                      maxlength="4"
+                      autocomplete="cc-csc"
+                      placeholder="123"
+                  /></label>
                 </div>
               </div>
               <p class="notice">
                 Payment is simulated. No real money is charged.
               </p>
-              <button class="back-btn" type="button" onclick="show(4)" title="Back to fare calculation" aria-label="Back to fare calculation">←</button> <button class="btn success" id="pay">
+              <button
+                class="back-btn"
+                type="button"
+                onclick="show(4)"
+                title="Back to fare calculation"
+                aria-label="Back to fare calculation"
+              >
+                ←
+              </button>
+              <button class="btn success" id="pay">
                 Pay & Generate Booking ID
               </button>
             </div>
@@ -153,43 +287,69 @@
     <script src="../js/booking.js"></script>
     <script src="../js/porter-booking.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        const upi = $('#payUpi');
-        const card = $('#payCard');
-        const upiPanel = $('#upiPanel');
-        const cardPanel = $('#cardPanel');
-        const canvas = $('#paymentQr');
-        const reference = $('#scannerReference');
+      document.addEventListener("DOMContentLoaded", () => {
+        const upi = $("#payUpi");
+        const card = $("#payCard");
+        const upiPanel = $("#upiPanel");
+        const cardPanel = $("#cardPanel");
+        const canvas = $("#paymentQr");
+        const reference = $("#scannerReference");
         const drawQr = () => {
           if (!canvas) return;
           const size = 21;
           const cell = canvas.width / size;
-          const ctx = canvas.getContext('2d');
-          const matrix = Array.from({length:size}, () => Array(size).fill(false));
-          const markFinder = (row, col) => { for (let y=0;y<7;y++) for (let x=0;x<7;x++) matrix[row+y][col+x]=y===0||y===6||x===0||x===6||(x>=2&&x<=4&&y>=2&&y<=4); };
-          markFinder(0,0); markFinder(0,14); markFinder(14,0);
-          for (let row=0;row<size;row++) for (let col=0;col<size;col++) if (!matrix[row][col]) matrix[row][col]=Math.random()>.52;
-          ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#172033';
-          for (let row=0;row<size;row++) for (let col=0;col<size;col++) if(matrix[row][col]) ctx.fillRect(col*cell,row*cell,cell,cell);
-          if (reference) reference.textContent=`UPI reference: EA-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+          const ctx = canvas.getContext("2d");
+          const matrix = Array.from({ length: size }, () =>
+            Array(size).fill(false),
+          );
+          const markFinder = (row, col) => {
+            for (let y = 0; y < 7; y++)
+              for (let x = 0; x < 7; x++)
+                matrix[row + y][col + x] =
+                  y === 0 ||
+                  y === 6 ||
+                  x === 0 ||
+                  x === 6 ||
+                  (x >= 2 && x <= 4 && y >= 2 && y <= 4);
+          };
+          markFinder(0, 0);
+          markFinder(0, 14);
+          markFinder(14, 0);
+          for (let row = 0; row < size; row++)
+            for (let col = 0; col < size; col++)
+              if (!matrix[row][col]) matrix[row][col] = Math.random() > 0.52;
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#172033";
+          for (let row = 0; row < size; row++)
+            for (let col = 0; col < size; col++)
+              if (matrix[row][col])
+                ctx.fillRect(col * cell, row * cell, cell, cell);
+          if (reference)
+            reference.textContent = `UPI reference: EA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
         };
         const showPay = () => {
           const isUpi = !!upi?.checked;
-          upiPanel?.classList.toggle('hidden', !isUpi);
-          cardPanel?.classList.toggle('hidden', isUpi);
+          upiPanel?.classList.toggle("hidden", !isUpi);
+          cardPanel?.classList.toggle("hidden", isUpi);
           if (isUpi) drawQr();
         };
-        upi?.addEventListener('change', showPay);
-        card?.addEventListener('change', showPay);
-        $('#cardNumber')?.addEventListener('input', e => {
-          e.target.value = e.target.value.replace(/\D/g,'').slice(0,16).replace(/(\d{4})(?=\d)/g,'$1 ');
+        upi?.addEventListener("change", showPay);
+        card?.addEventListener("change", showPay);
+        $("#cardNumber")?.addEventListener("input", (e) => {
+          e.target.value = e.target.value
+            .replace(/\D/g, "")
+            .slice(0, 16)
+            .replace(/(\d{4})(?=\d)/g, "$1 ");
         });
-        $('#cardExpiry')?.addEventListener('input', e => {
-          let v = e.target.value.replace(/\D/g,'').slice(0,4);
-          if (v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+        $("#cardExpiry")?.addEventListener("input", (e) => {
+          let v = e.target.value.replace(/\D/g, "").slice(0, 4);
+          if (v.length > 2) v = v.slice(0, 2) + "/" + v.slice(2);
           e.target.value = v;
         });
-        $('#cardCvv')?.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g,'').slice(0,4); });
+        $("#cardCvv")?.addEventListener("input", (e) => {
+          e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4);
+        });
         showPay();
       });
     </script>

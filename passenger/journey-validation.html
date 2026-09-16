@@ -48,7 +48,10 @@
                     maxlength="10"
                     inputmode="numeric"
                     required
-                    placeholder="10-digit PNR" /><span class="field-error" id="jpnrError"></span></label
+                    placeholder="10-digit PNR" /><span
+                    class="field-error"
+                    id="jpnrError"
+                  ></span></label
                 ><label
                   >Train Number<input
                     id="jtrain"
@@ -56,7 +59,10 @@
                     maxlength="5"
                     pattern="[0-9]{5}"
                     required
-                    placeholder="5-digit train number" /><span class="field-error" id="jtrainError"></span></label
+                    placeholder="5-digit train number" /><span
+                    class="field-error"
+                    id="jtrainError"
+                  ></span></label
                 ><label
                   >Journey Date<input id="jdate" type="date" required /></label
                 ><label
@@ -71,7 +77,10 @@
                     inputmode="numeric"
                     maxlength="2"
                     placeholder="Enter platform number"
-                    required /><span class="field-error" id="jplatformError"></span></label
+                    required /><span
+                    class="field-error"
+                    id="jplatformError"
+                  ></span></label
                 ><button class="btn full">Validate Journey</button>
               </form>
             </div>
@@ -115,9 +124,15 @@
         bindDigits($("#jpnr"), 10);
         bindDigits($("#jtrain"), 5);
         bindDigits($("#jplatform"), 2);
-        $("#jpnr").addEventListener("input", () => setFieldError("#jpnrError", ""));
-        $("#jtrain").addEventListener("input", () => setFieldError("#jtrainError", ""));
-        $("#jplatform").addEventListener("input", () => setFieldError("#jplatformError", ""));
+        $("#jpnr").addEventListener("input", () =>
+          setFieldError("#jpnrError", ""),
+        );
+        $("#jtrain").addEventListener("input", () =>
+          setFieldError("#jtrainError", ""),
+        );
+        $("#jplatform").addEventListener("input", () =>
+          setFieldError("#jplatformError", ""),
+        );
         $("#journeyForm").onsubmit = (e) => {
           e.preventDefault();
           setFieldError("#jpnrError", "");
@@ -128,7 +143,10 @@
           if (pnrErr) return setFieldError("#jpnrError", pnrErr);
           const trainErr = trainNumberError($("#jtrain").value);
           if (trainErr) return setFieldError("#jtrainError", trainErr);
-          const platErr = platformError($("#jplatform").value, "Platform number");
+          const platErr = platformError(
+            $("#jplatform").value,
+            "Platform number",
+          );
           if (platErr) return setFieldError("#jplatformError", platErr);
           if (!$("#jdate").value)
             return toast("Enter train number and journey date.");
