@@ -29,9 +29,27 @@ function staff(){
     $('#staffTable').innerHTML='<table><tr><th>ID</th><th>Name</th><th>Role</th><th>Status</th><th>Action</th></tr>'+(pg.slice.length?pg.slice.map(x=>`<tr><td>${x.employeeId}</td><td>${x.name}</td><td>${x.role}</td><td>${x.status}</td><td><button class="btn sm" onclick="editStaff('${x.employeeId}')">Edit</button> <button class="btn danger sm" onclick="delStaff('${x.employeeId}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="5" class="muted">No staff.</td></tr>')+'</table>';
     fillPager('#listPager',pg.page,pg.empty?0:pg.pages);
   }
-  window.delStaff=i=>{set('staff',get('staff').filter(x=>x.employeeId!==i));draw();toast('Staff deleted.')};
-  window.editStaff=i=>{let a=get('staff'),x=a.find(y=>y.employeeId===i),n=prompt('Name',x.name);if(n){x.name=n;set('staff',a);draw()}};
-  $('#addStaff').onclick=()=>{let n=prompt('Staff name');if(!n)return;let a=get('staff');a.push({id:id('S'),employeeId:id('STF'),name:n,password:'Staff@123',role:prompt('Role','Porter'),status:'Available'});set('staff',a);draw();toast('Staff added.')};
+  window.delStaff=async i=>{
+    if(!await confirmAction({title:'Are you sure?',message:'Do you want to delete this staff member?',confirm:'Delete'}))return;
+    set('staff',get('staff').filter(x=>x.employeeId!==i));
+    draw();
+    toast('Staff deleted.');
+  };
+  window.editStaff=async i=>{
+    const a=get('staff'),x=a.find(y=>y.employeeId===i);
+    const res=await openFormModal({title:'Edit staff',fields:[{id:'name',label:'Name',value:x.name}],submit:'Update'});
+    if(!res)return;
+    if(!res.name)return toast('Name is required.',true);
+    x.name=res.name;set('staff',a);draw();toast('Staff updated.');
+  };
+  $('#addStaff').onclick=async()=>{
+    const res=await openFormModal({title:'Add staff',fields:[{id:'name',label:'Staff name'},{id:'role',label:'Role',value:'Porter'}],submit:'Add'});
+    if(!res)return;
+    if(!res.name)return toast('Staff name is required.',true);
+    const a=get('staff');
+    a.push({id:id('S'),employeeId:id('STF'),name:res.name,password:'Staff@123',role:res.role||'Porter',status:'Available'});
+    set('staff',a);draw();toast('Staff added.');
+  };
   attachList('#listSearch','#listPager',state,draw);
   draw();
 }
@@ -44,28 +62,55 @@ function resources(t,el){
     $('#'+el).innerHTML='<table><tr><th>ID</th><th>Station</th><th>Quantity</th><th>Action</th></tr>'+(pg.slice.length?pg.slice.map(x=>`<tr><td>${x.id}</td><td>${x.station}</td><td>${x.quantity??x.count}</td><td><button class="btn sm" onclick="upd('${t}','${x.id}')">Update</button> <button class="btn danger sm" onclick="delres('${t}','${x.id}')">Remove</button></td></tr>`).join(''):'<tr><td colspan="4" class="muted">No records.</td></tr>')+'</table>';
     fillPager('#listPager',pg.page,pg.empty?0:pg.pages);
   }
-  window.upd=(type,i)=>{let d=get('resources'),x=d[type].find(y=>y.id===i),k=type==='wheelchairs'?'quantity':'count',n=prompt('Quantity',x[k]);if(n!==null){x[k]=+n;set('resources',d);draw()}};
-  window.delres=(type,i)=>{let d=get('resources');d[type]=d[type].filter(x=>x.id!==i);set('resources',d);draw()};
-  $('#'+(t==='wheelchairs'?'addWheelchair':'addVehicle')).onclick=()=>{let st=prompt('Station','Mumbai Central'),n=+(prompt('Quantity','5')||0),d=get('resources');d[t].push({id:id(t==='wheelchairs'?'WC':'V'),station:st,...(t==='wheelchairs'?{quantity:n}:{count:n})});set('resources',d);draw()};
+  window.upd=async(type,i)=>{
+    const d=get('resources'),x=d[type].find(y=>y.id===i),k=type==='wheelchairs'?'quantity':'count';
+    const res=await openFormModal({title:'Update quantity',fields:[{id:'qty',label:'Quantity',value:x[k],type:'number'}],submit:'Update'});
+    if(!res)return;
+    const n=+res.qty;
+    if(!Number.isFinite(n)||n<0)return toast('Enter a valid quantity.',true);
+    x[k]=n;set('resources',d);draw();toast('Quantity updated.');
+  };
+  window.delres=async(type,i)=>{
+    if(!await confirmAction({title:'Are you sure?',message:'Do you want to remove this record?',confirm:'Remove'}))return;
+    const d=get('resources');
+    d[type]=d[type].filter(x=>x.id!==i);
+    set('resources',d);
+    draw();
+    toast('Record removed.');
+  };
+  $('#'+(t==='wheelchairs'?'addWheelchair':'addVehicle')).onclick=async()=>{
+    const res=await openFormModal({title:t==='wheelchairs'?'Add wheelchair':'Add vehicle',fields:[{id:'station',label:'Station',value:'Mumbai Central'},{id:'qty',label:'Quantity',value:'5',type:'number'}],submit:'Add'});
+    if(!res)return;
+    if(!res.station)return toast('Station is required.',true);
+    const n=+res.qty;
+    if(!Number.isFinite(n)||n<0)return toast('Enter a valid quantity.',true);
+    const d=get('resources');
+    d[t].push({id:id(t==='wheelchairs'?'WC':'V'),station:res.station,...(t==='wheelchairs'?{quantity:n}:{count:n})});
+    set('resources',d);draw();toast('Record added.');
+  };
   attachList('#listSearch','#listPager',state,draw);
   draw();
 }
 function monitor(){
   const state={page:1};
-  function staffName(id){
-    if(!id)return '—';
-    return (get('staff').find(y=>y.employeeId===id)||{}).name||id;
+  function statusContext(x){
+    const staff=staffDisplayName(x.staffId);
+    if(x.status==='Rejected') return 'Rejected';
+    if(!staff){
+      if(x.status==='Booked') return 'Booked · awaiting staff assignment';
+      return (x.status||'Booked')+' · unassigned';
+    }
+    if(x.status==='Booked'||x.status==='Assigned') return `Assigned to ${staff}`;
+    return `${x.status} · ${staff}`;
   }
   function draw(){
     const q=listQuery('#msearch'),s=$('#mservice').value;
-    const a=get('bookings').filter(x=>textMatch(q,x.id,x.passenger,x.station,x.status,x.service,x.train,x.staffId)&&(!s||x.service===s));
+    const a=get('bookings').filter(x=>textMatch(q,x.id,x.passenger,x.station,x.status,x.service,x.train,x.staffId,staffDisplayName(x.staffId))&&(!s||x.service===s));
     const pg=paginate(a,state.page);state.page=pg.page;
     const rows=pg.slice.length?pg.slice.map(x=>{
-      const pick=x.pickPlatform||x.platform;
-      const drop=x.dropPlatform;
-      const route=pick&&drop?`Platform ${pick} → ${drop}`:pick?`Platform ${pick}`:'—';
       const when=[x.date,x.time].filter(Boolean).join(' ');
-      return `<tr><td><b>${x.id}</b></td><td>${x.passenger||'—'}</td><td>${x.service||'—'}</td><td><span class="badge">${x.status||'—'}</span></td><td>${x.station||'—'}</td><td>${route}</td><td>${when||'—'}</td><td>${staffName(x.staffId)}</td><td>₹${x.fare??0}</td></tr>`;
+      const staff=staffDisplayName(x.staffId)||'Unassigned';
+      return `<tr><td><b>${x.id}</b></td><td>${escHtml(x.passenger||'—')}</td><td>${escHtml(x.service||'—')}</td><td><span class="badge">${escHtml(statusContext(x))}</span></td><td>${escHtml(x.station||'—')}</td><td>${escHtml(bookingRoute(x))}</td><td>${escHtml(when||'—')}</td><td>${escHtml(staff)}</td><td>₹${x.fare??0}</td></tr>`;
     }).join(''):'<tr><td colspan="9" class="muted">No services.</td></tr>';
     $('#monitor').innerHTML=`<div class="table-wrap"><table><thead><tr><th>ID</th><th>Passenger</th><th>Service</th><th>Status</th><th>Station</th><th>Pick & Drop</th><th>Date</th><th>Staff</th><th>Fare</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     fillPager('#listPager',pg.page,pg.empty?0:pg.pages);
@@ -194,12 +239,44 @@ function complaints(){
   const state={page:1};
   function draw(){
     const q=listQuery('#listSearch');
-    const a=get('complaints').filter(x=>textMatch(q,x.id,x.passenger,x.subject,x.status));
+    const a=get('complaints').filter(x=>x.status!=='Closed'&&textMatch(q,x.id,x.passenger,x.subject,x.status,x.description));
     const pg=paginate(a,state.page);state.page=pg.page;
-    $('#adminComplaints').innerHTML=pg.slice.length?pg.slice.map(x=>`<div class="listrow"><div><b>${x.id}</b> · ${x.passenger}<br>${x.subject} · Rating ${x.rating}</div><span>${x.status}</span><button class="btn sm" onclick="comp('${x.id}','Resolved')">Resolve</button><button class="btn outline sm" onclick="comp('${x.id}','Closed')">Close</button></div>`).join(''):'<p class="muted">No complaints.</p>';
+    $('#adminComplaints').innerHTML=pg.slice.length?pg.slice.map(x=>{
+      const open=x.status==='Open';
+      const actions=`<div class="act-btns"><button type="button" class="btn outline sm" data-view-comp="${x.id}">View</button>${open?`<button type="button" class="btn sm" data-comp="${x.id}" data-comp-status="Resolved">Resolve</button>`:''}<button type="button" class="btn outline sm" data-comp="${x.id}" data-comp-status="Closed">Close</button></div>`;
+      return `<div class="listrow"><div><b>${x.id}</b> · ${escHtml(x.passenger)} · <span class="badge">${escHtml(x.status)}</span><br><b>${escHtml(x.subject)}</b><p class="muted complaint-preview">${escHtml(x.description||'No description.')}</p></div>${actions}</div>`;
+    }).join(''):'<p class="muted">No open complaints.</p>';
     fillPager('#listPager',pg.page,pg.empty?0:pg.pages);
   }
-  window.comp=(i,s)=>{let a=get('complaints'),x=a.find(y=>y.id===i);x.status=s;set('complaints',a);draw()};
+  $('#adminComplaints')?.addEventListener('click',e=>{
+    const view=e.target.closest('[data-view-comp]');
+    if(view){
+      const x=get('complaints').find(y=>y.id===view.dataset.viewComp);
+      if(!x)return;
+      openDetailsModal({
+        title:x.id,
+        fields:[
+          {label:'Passenger',value:x.passenger},
+          {label:'Subject',value:x.subject},
+          {label:'Description',value:x.description||'No description.'},
+          {label:'Rating',value:x.rating},
+          {label:'Status',value:x.status},
+          {label:'Submitted',value:x.createdAt?new Date(x.createdAt).toLocaleString():'—'}
+        ]
+      });
+      return;
+    }
+    const btn=e.target.closest('[data-comp]');
+    if(!btn)return;
+    const a=get('complaints'),x=a.find(y=>y.id===btn.dataset.comp);
+    if(!x||x.status==='Closed')return toast('This complaint is already closed.',true);
+    const next=btn.dataset.compStatus;
+    if(next==='Resolved'&&x.status!=='Open')return toast('This complaint is already resolved.',true);
+    x.status=next;
+    set('complaints',a);
+    toast(next==='Closed'?'Complaint closed.':'Complaint resolved.');
+    draw();
+  });
   attachList('#listSearch','#listPager',state,draw);
   draw();
 }

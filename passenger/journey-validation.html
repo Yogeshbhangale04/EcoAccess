@@ -11,15 +11,15 @@
       <aside>
         <a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a>
         <nav>
-          <a href="dashboard.html">⌂ Dashboard</a
-          ><a href="journey-validation.html">✓ Validate Journey</a
-          ><a href="create-booking.html">＋ Book Service</a
-          ><a href="tracking.html">◎ My Bookings</a
-          ><a href="waste.html">♻ Waste Disposal</a
-          ><a href="feedback.html">☆ Feedback</a
-          ><a href="profile.html">◯ Profile</a>
+          <a href="dashboard.html">Dashboard</a
+          ><a href="journey-validation.html">Validate Journey</a
+          ><a href="create-booking.html">Book Service</a
+          ><a href="tracking.html">My Bookings</a
+          ><a href="waste.html">Waste Disposal</a
+          ><a href="feedback.html">Feedback</a
+          ><a href="profile.html">Profile</a>
         </nav>
-        <button data-logout class="sidebtn">↪ Logout</button>
+        <button data-logout class="sidebtn">Logout</button>
       </aside>
       <section class="main">
         <header class="top">
@@ -48,12 +48,15 @@
                     maxlength="10"
                     inputmode="numeric"
                     required
-                    placeholder="10-digit PNR" /></label
+                    placeholder="10-digit PNR" /><span class="field-error" id="jpnrError"></span></label
                 ><label
                   >Train Number<input
                     id="jtrain"
+                    inputmode="numeric"
+                    maxlength="5"
+                    pattern="[0-9]{5}"
                     required
-                    placeholder="e.g. 12951" /></label
+                    placeholder="5-digit train number" /><span class="field-error" id="jtrainError"></span></label
                 ><label
                   >Journey Date<input id="jdate" type="date" required /></label
                 ><label
@@ -63,13 +66,12 @@
                     <option>Pune Junction</option>
                   </select></label
                 ><label
-                  >Platform<select id="jplatform">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                  </select></label
+                  >Platform Number<input
+                    id="jplatform"
+                    inputmode="numeric"
+                    maxlength="2"
+                    placeholder="Enter platform number"
+                    required /><span class="field-error" id="jplatformError"></span></label
                 ><button class="btn full">Validate Journey</button>
               </form>
             </div>
@@ -77,6 +79,7 @@
               <h2>Access Rules</h2>
               <p>✓ Login is required.</p>
               <p>✓ Valid PNR and train details are required.</p>
+              <p class="muted">Demo PNRs: 4521987630, 6109873421, 8234561907</p>
               <p>✓ A validated journey unlocks service booking.</p>
               <p>✓ The same validation unlocks Waste Disposal image upload.</p>
               <p>✓ Validation details are reused during booking.</p>
@@ -109,12 +112,25 @@
           $("#status").textContent =
             "✓ Journey already validated. You can update it below.";
         }
+        bindDigits($("#jpnr"), 10);
+        bindDigits($("#jtrain"), 5);
+        bindDigits($("#jplatform"), 2);
+        $("#jpnr").addEventListener("input", () => setFieldError("#jpnrError", ""));
+        $("#jtrain").addEventListener("input", () => setFieldError("#jtrainError", ""));
+        $("#jplatform").addEventListener("input", () => setFieldError("#jplatformError", ""));
         $("#journeyForm").onsubmit = (e) => {
           e.preventDefault();
+          setFieldError("#jpnrError", "");
+          setFieldError("#jtrainError", "");
+          setFieldError("#jplatformError", "");
           let p = $("#jpnr").value.trim();
-          if (!/^\d{10}$/.test(p))
-            return toast("PNR must contain exactly 10 digits.");
-          if (!$("#jtrain").value.trim() || !$("#jdate").value)
+          const pnrErr = demoPnrError(p);
+          if (pnrErr) return setFieldError("#jpnrError", pnrErr);
+          const trainErr = trainNumberError($("#jtrain").value);
+          if (trainErr) return setFieldError("#jtrainError", trainErr);
+          const platErr = platformError($("#jplatform").value, "Platform number");
+          if (platErr) return setFieldError("#jplatformError", platErr);
+          if (!$("#jdate").value)
             return toast("Enter train number and journey date.");
           let d = new Date($("#jdate").value);
           let td = new Date();
@@ -129,10 +145,10 @@
               id: id("JV-"),
               passengerId: u.id,
               pnr: p,
-              train: $("#jtrain").value.trim(),
+              train: $("#jtrain").value.replace(/\D/g, "").slice(0, 5),
               date: $("#jdate").value,
               station: $("#jstation").value,
-              platform: $("#jplatform").value,
+              platform: $("#jplatform").value.replace(/\D/g, "").slice(0, 2),
               valid: true,
               validatedAt: new Date().toISOString(),
             };

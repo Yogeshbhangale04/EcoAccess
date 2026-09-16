@@ -11,15 +11,15 @@
       <aside>
         <a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a>
         <nav>
-          <a href="dashboard.html">⌂ Dashboard</a
-          ><a href="journey-validation.html">✓ Validate Journey</a
-          ><a href="create-booking.html">＋ Book Service</a
-          ><a href="tracking.html">◎ My Bookings</a
-          ><a href="waste.html">♻ Waste Disposal</a
-          ><a href="feedback.html">☆ Feedback</a
-          ><a href="profile.html">◯ Profile</a>
+          <a href="dashboard.html">Dashboard</a
+          ><a href="journey-validation.html">Validate Journey</a
+          ><a href="create-booking.html">Book Service</a
+          ><a href="tracking.html">My Bookings</a
+          ><a href="waste.html">Waste Disposal</a
+          ><a href="feedback.html">Feedback</a
+          ><a href="profile.html">Profile</a>
         </nav>
-        <button data-logout class="sidebtn">↪ Logout</button>
+        <button data-logout class="sidebtn">Logout</button>
       </aside>
       <section class="main">
         <header class="top">
@@ -35,15 +35,18 @@
           <h1>Create Booking</h1>
           <p class="muted">Journey → Service → Availability → Fare → Payment</p>
           <div class="steps">
-            <b>1 Journey</b><b>2 Service</b><b>3 Availability</b><b>4 Fare</b
-            ><b>5 Payment</b>
+            <b data-step="1" class="active">Journey</b>
+            <b data-step="2">Service</b>
+            <b data-step="3">Availability</b>
+            <b data-step="4">Fare</b>
+            <b data-step="5">Payment</b>
           </div>
           <div class="panel">
             <div id="step1">
               <h2>Journey Details</h2>
               <div class="formgrid">
-                <label>PNR<input id="pnr" /></label
-                ><label>Train Number<input id="train" required /></label
+                <label>PNR<input id="pnr" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="10-digit PNR" /></label
+                ><label>Train Number<input id="train" inputmode="numeric" maxlength="5" pattern="[0-9]{5}" placeholder="5-digit train number" required /></label
                 ><label
                   >Journey Date<input id="date" type="date" required /></label
                 ><label
@@ -53,13 +56,7 @@
                     <option>Pune Junction</option>
                   </select></label
                 ><label
-                  >Platform<select id="platform">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                  </select></label
+                  >Platform Number<input id="platform" inputmode="numeric" maxlength="2" placeholder="Enter platform number" required /></label
                 >
               </div>
               <button class="btn" id="next1">Proceed →</button>
@@ -92,20 +89,8 @@
               <div class="notice" id="avail"></div>
               <div id="availExtras" class="porter-details">
                 <label>Number of Passenger<input id="passengerCount" type="number" min="1" max="8" value="1" required /></label>
-                <label>Pick Platform<select id="pickPlatform">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                  </select></label>
-                <label>Drop Platform<select id="dropPlatform">
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                    <option>4</option>
-                    <option>5</option>
-                  </select></label>
+                <label>Pick Platform<input id="pickPlatform" inputmode="numeric" maxlength="2" placeholder="Enter pick platform" required /></label>
+                <label>Drop Platform<input id="dropPlatform" inputmode="numeric" maxlength="2" placeholder="Enter drop platform" required /></label>
               </div>
               <button class="back-btn" type="button" onclick="show(2)" title="Back to service selection" aria-label="Back to service selection">←</button> <button class="btn" id="next3">Continue to Fare →</button>
             </div>
@@ -129,11 +114,23 @@
             </div>
             <div id="step5" class="hidden">
               <h2>Payment</h2>
-              <label><input type="radio" name="pay" checked /> Card</label>
-              <label><input type="radio" name="pay" /> UPI</label>
-              <label><input type="radio" name="pay" /> Net Banking</label>
-              <label><input type="radio" name="pay" id="scannerPayment" /> Scanner</label>
-              <div id="scannerPanel" class="scanner-panel hidden"><canvas id="paymentQr" width="210" height="210" aria-label="Generated payment QR code"></canvas><p id="scannerReference"></p><small>Scan this generated QR code to complete payment.</small></div>
+              <div class="pay-methods">
+                <label class="pay-choice"><input type="radio" name="pay" value="upi" id="payUpi" checked /> UPI</label>
+                <label class="pay-choice"><input type="radio" name="pay" value="card" id="payCard" /> Card</label>
+              </div>
+              <div id="upiPanel" class="scanner-panel">
+                <canvas id="paymentQr" width="210" height="210" aria-label="Dummy UPI QR code"></canvas>
+                <p id="scannerReference"></p>
+                <small>Scan this dummy QR code to complete UPI payment.</small>
+              </div>
+              <div id="cardPanel" class="card-pay hidden">
+                <label>Name on card<input id="cardName" autocomplete="cc-name" placeholder="Name as printed on card" /></label>
+                <label>Card number<input id="cardNumber" inputmode="numeric" maxlength="19" autocomplete="cc-number" placeholder="ACCT-000003" /></label>
+                <div class="formgrid">
+                  <label>Expiry (MM/YY)<input id="cardExpiry" maxlength="5" placeholder="MM/YY" /></label>
+                  <label>CVV<input id="cardCvv" inputmode="numeric" maxlength="4" autocomplete="cc-csc" placeholder="123" /></label>
+                </div>
+              </div>
               <p class="notice">
                 Payment is simulated. No real money is charged.
               </p>
@@ -157,12 +154,14 @@
     <script src="../js/porter-booking.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const scanner = $('#scannerPayment');
-        const panel = $('#scannerPanel');
+        const upi = $('#payUpi');
+        const card = $('#payCard');
+        const upiPanel = $('#upiPanel');
+        const cardPanel = $('#cardPanel');
         const canvas = $('#paymentQr');
         const reference = $('#scannerReference');
-        if (!scanner) return;
         const drawQr = () => {
+          if (!canvas) return;
           const size = 21;
           const cell = canvas.width / size;
           const ctx = canvas.getContext('2d');
@@ -172,11 +171,26 @@
           for (let row=0;row<size;row++) for (let col=0;col<size;col++) if (!matrix[row][col]) matrix[row][col]=Math.random()>.52;
           ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#172033';
           for (let row=0;row<size;row++) for (let col=0;col<size;col++) if(matrix[row][col]) ctx.fillRect(col*cell,row*cell,cell,cell);
-          reference.textContent=`Payment reference: EA-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
-          panel.classList.remove('hidden');
+          if (reference) reference.textContent=`UPI reference: EA-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
         };
-        scanner.addEventListener('change', () => { if (scanner.checked) drawQr(); });
-        $$('input[name="pay"]').filter(input => input !== scanner).forEach(input => input.addEventListener('change', () => panel.classList.add('hidden')));
+        const showPay = () => {
+          const isUpi = !!upi?.checked;
+          upiPanel?.classList.toggle('hidden', !isUpi);
+          cardPanel?.classList.toggle('hidden', isUpi);
+          if (isUpi) drawQr();
+        };
+        upi?.addEventListener('change', showPay);
+        card?.addEventListener('change', showPay);
+        $('#cardNumber')?.addEventListener('input', e => {
+          e.target.value = e.target.value.replace(/\D/g,'').slice(0,16).replace(/(\d{4})(?=\d)/g,'$1 ');
+        });
+        $('#cardExpiry')?.addEventListener('input', e => {
+          let v = e.target.value.replace(/\D/g,'').slice(0,4);
+          if (v.length>2) v = v.slice(0,2)+'/'+v.slice(2);
+          e.target.value = v;
+        });
+        $('#cardCvv')?.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g,'').slice(0,4); });
+        showPay();
       });
     </script>
   </body>

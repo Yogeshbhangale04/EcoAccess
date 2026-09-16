@@ -11,15 +11,15 @@
       <aside>
         <a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a>
         <nav>
-          <a href="dashboard.html">⌂ Dashboard</a
-          ><a href="journey-validation.html">✓ Validate Journey</a
-          ><a href="create-booking.html">＋ Book Service</a
-          ><a href="tracking.html">◎ My Bookings</a
-          ><a href="waste.html">♻ Waste Disposal</a
-          ><a href="feedback.html">☆ Feedback</a
-          ><a href="profile.html">◯ Profile</a>
+          <a href="dashboard.html">Dashboard</a
+          ><a href="journey-validation.html">Validate Journey</a
+          ><a href="create-booking.html">Book Service</a
+          ><a href="tracking.html">My Bookings</a
+          ><a href="waste.html">Waste Disposal</a
+          ><a href="feedback.html">Feedback</a
+          ><a href="profile.html">Profile</a>
         </nav>
-        <button data-logout class="sidebtn">↪ Logout</button>
+        <button data-logout class="sidebtn">Logout</button>
       </aside>
       <section class="main">
         <header class="top">
@@ -44,12 +44,12 @@
                     <option>2</option>
                     <option>1</option>
                   </select></label
-                ><label>Subject<input id="subject" required /></label
+                ><label>Subject<input id="subject" required maxlength="80" /><span class="field-error" id="subjectError"></span></label
                 ><label
                   >Description<textarea
                     id="description"
                     required
-                  ></textarea></label
+                  ></textarea><span class="field-error" id="descriptionError"></span></label
                 ><button class="btn">Submit</button>
               </form>
             </div>

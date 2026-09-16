@@ -1,4 +1,42 @@
-function initProfile(u){$('#pnameView').textContent=u.name;$('#pmobileView').textContent=u.mobile;$('#pemailView').textContent=u.email;$('#pname').value=u.name;$('#pmobile').value=u.mobile;$('#pemail').value=u.email;$('#editProfile').onclick=()=>{$('#profileDetails').classList.add('hidden');$('#profile').classList.remove('hidden');$('#editProfile').classList.add('hidden');$('#pname').focus()};$('#profile').onsubmit=e=>{e.preventDefault();const n=personNameError($('#pname').value);if(n)return toast(n,true);const em=emailError($('#pemail').value);if(em)return toast(em,true);let a=get('passengers'),x=a.find(y=>y.id===u.id);x.name=$('#pname').value.replace(/\s+/g,' ').trim();x.email=$('#pemail').value.trim();set('passengers',a);set('session',{role:'passenger',...x});$('#pnameView').textContent=x.name;$('#pemailView').textContent=x.email;$('#profileDetails').classList.remove('hidden');$('#profile').classList.add('hidden');$('#editProfile').classList.remove('hidden');$('#user').textContent=x.name;toast('Profile updated.')}}
+function initProfile(u){
+  function fill(){
+    $('#pnameView').textContent=u.name;
+    $('#pmobileView').textContent=formatIndianMobile(u.mobile);
+    $('#pemailView').textContent=u.email;
+    $('#pname').value=u.name;
+    $('#pmobile').value=indianLocalDigits(u.mobile);
+    $('#pemail').value=u.email;
+  }
+  function showView(){
+    $('#profileDetails').classList.remove('hidden');
+    $('#profile').classList.add('hidden');
+    $('#editProfile').classList.remove('hidden');
+  }
+  fill();
+  $('#editProfile').onclick=()=>{
+    fill();
+    $('#profileDetails').classList.add('hidden');
+    $('#profile').classList.remove('hidden');
+    $('#editProfile').classList.add('hidden');
+    $('#pname').focus();
+  };
+  $('#cancelProfile')?.addEventListener('click',()=>{fill();showView()});
+  $('#profile').onsubmit=e=>{
+    e.preventDefault();
+    const n=personNameError($('#pname').value);if(n)return toast(n,true);
+    const em=emailError($('#pemail').value);if(em)return toast(em,true);
+    let a=get('passengers'),x=a.find(y=>y.id===u.id);
+    x.name=$('#pname').value.replace(/\s+/g,' ').trim();
+    x.email=$('#pemail').value.trim();
+    set('passengers',a);
+    set('session',{role:'passenger',...x});
+    u=x;
+    $('#user').textContent=x.name;
+    fill();
+    showView();
+    toast('Profile updated.');
+  };
+}
 document.addEventListener('DOMContentLoaded',()=>{let u=session();if(!u||u.role!=='passenger')return location.href='../login.html';let bs=get('bookings').filter(b=>b.passengerId===u.id),me=get('passengers').find(x=>x.id===u.id)||u;if($('#name'))$('#name').textContent=u.name.split(' ')[0];if($('#upcoming'))$('#upcoming').textContent=bs.filter(b=>b.status!=='Completed').length;if($('#points'))$('#points').textContent=me.points||0;if($('#completed'))$('#completed').textContent=bs.filter(b=>b.status==='Completed').length;if($('#open'))$('#open').textContent=bs.filter(b=>b.status!=='Completed').length;if($('#journeyStatus')){let j=journeyValidation();$('#journeyStatus').innerHTML=j?`✓ <b>Journey validated</b> — PNR ${j.pnr}, Train ${j.train}, ${j.date}. <a href="journey-validation.html">Update</a>`:`⚠ <b>Journey validation required.</b> Validate your journey before booking or uploading waste proof. <a href="journey-validation.html">Validate now →</a>`}if($('#upcomingList'))$('#upcomingList').innerHTML=bs.map(b=>`<p><b>${b.id}</b> · ${b.service} · ${b.date}<br><span class="badge">${b.status}</span></p>`).join('')||'<p class="muted">No bookings.</p>';if($('#wasteForm')){if(!requireJourney())return;initWaste(u);}if($('#catalog'))initRewards(u);if($('#feedback'))initFeedback(u);if($('#profile'))initProfile(u)});function initWaste(u){
   let stream=null,photoData='',gateTimer=null;
   const takeBtn=$('#takePicture'),video=$('#wasteVideo'),shot=$('#wasteShot'),canvas=$('#wasteCanvas'),actions=$('#photoActions'),submitBtn=$('#submitWaste'),placeholder=$('#imagePlaceholder');
@@ -257,14 +295,48 @@ function renderWaste(u){
   draw();
 }function initFeedback(u){
   const state={page:1};
+  bindAlphaText($('#subject'));
+  bindAlphaText($('#description'));
+  function viewItem(x){
+    if(!x)return;
+    openDetailsModal({
+      title:x.id,
+      fields:[
+        {label:'Subject',value:x.subject},
+        {label:'Description',value:x.description},
+        {label:'Rating',value:x.rating},
+        {label:'Status',value:x.status},
+        {label:'Submitted',value:x.createdAt?new Date(x.createdAt).toLocaleString():'—'}
+      ]
+    });
+  }
   function draw(){
     const q=listQuery('#listSearch');
-    const a=get('complaints').filter(x=>x.passengerId===u.id&&textMatch(q,x.id,x.subject,x.status));
+    const a=get('complaints').filter(x=>x.passengerId===u.id&&textMatch(q,x.id,x.subject,x.status,x.description));
     const pg=paginate(a,state.page);state.page=pg.page;
-    $('#complaints').innerHTML=pg.slice.length?pg.slice.map(x=>`<p><b>${x.id}</b> · ${x.subject} · <span class="badge">${x.status}</span></p>`).join(''):'<p class="muted">No complaints.</p>';
+    $('#complaints').innerHTML=pg.slice.length?pg.slice.map(x=>`<div class="listrow"><div><b>${x.id}</b> · ${escHtml(x.subject)}<br><span class="badge">${x.status}</span></div><button type="button" class="btn sm outline" data-view-complaint="${x.id}">View</button></div>`).join(''):'<p class="muted">No complaints.</p>';
     fillPager('#listPager',pg.page,pg.empty?0:pg.pages);
   }
-  $('#feedback').onsubmit=e=>{e.preventDefault();let a=get('complaints');a.push({id:id('CP-'),passengerId:u.id,passenger:u.name,rating:+$('#rating').value,subject:$('#subject').value,description:$('#description').value,status:'Open'});set('complaints',a);toast('Complaint submitted.');e.target.reset();draw()};
+  $('#complaints')?.addEventListener('click',e=>{
+    const btn=e.target.closest('[data-view-complaint]');
+    if(!btn)return;
+    viewItem(get('complaints').find(x=>x.id===btn.dataset.viewComplaint));
+  });
+  $('#feedback').onsubmit=e=>{
+    e.preventDefault();
+    setFieldError('#subjectError','');
+    setFieldError('#descriptionError','');
+    const subjectErr=alphaTextError($('#subject').value,'Subject');
+    if(subjectErr)return setFieldError('#subjectError',subjectErr);
+    const descErr=alphaTextError($('#description').value,'Description');
+    if(descErr)return setFieldError('#descriptionError',descErr);
+    let a=get('complaints');
+    a.push({id:id('CP-'),passengerId:u.id,passenger:u.name,rating:+$('#rating').value,subject:$('#subject').value.replace(/\s+/g,' ').trim(),description:$('#description').value.replace(/\s+/g,' ').trim(),status:'Open',createdAt:Date.now()});
+    set('complaints',a);
+    toast('Complaint submitted.');
+    e.target.reset();
+    draw();
+  };
   attachList('#listSearch','#listPager',state,draw);
   draw();
-}function initProfile(u){$('#pname').value=u.name;$('#pmobile').value=u.mobile;$('#pemail').value=u.email;$('#profile').onsubmit=e=>{e.preventDefault();const n=personNameError($('#pname').value);if(n)return toast(n,true);const em=emailError($('#pemail').value);if(em)return toast(em,true);let a=get('passengers'),x=a.find(y=>y.id===u.id);x.name=$('#pname').value.replace(/\s+/g,' ').trim();x.email=$('#pemail').value.trim();set('passengers',a);set('session',{role:'passenger',...x});toast('Profile updated.')}}
+}

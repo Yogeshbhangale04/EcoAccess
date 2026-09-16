@@ -11,20 +11,30 @@
       <aside>
         <a class="brand" href="dashboard.html"><b>EA</b> EcoAccess</a>
         <nav>
-          <a href="dashboard.html">⌂ Dashboard</a
-          ><a href="assigned.html">▣ Assigned Bookings</a
-          ><a href="management.html">⚙ Service Management</a
-          ><a href="availability.html">● Availability</a>
+          <a href="dashboard.html"><span data-i18n="dashboard">Dashboard</span></a>
+          <a href="assigned.html"><span data-i18n="assignedBookings">Assigned Bookings</span></a>
+          <a href="management.html"><span data-i18n="serviceManagement">Service Management</span></a>
+          <a href="availability.html"><span data-i18n="availability">Availability</span></a>
         </nav>
-        <button data-logout class="sidebtn">↪ Logout</button>
+        <button data-logout class="sidebtn"><span data-i18n="logout">Logout</span></button>
       </aside>
       <section class="main">
         <header class="top">
-          <button id="menu">☰</button><strong>Availability Management</strong
-          ><span id="user"></span>
+          <button id="menu">☰</button>
+          <strong data-i18n="availabilityManagement" data-i18n-title="availabilityManagement">Availability Management</strong>
+          <span class="top-actions">
+            <label class="lang-switch"><span data-i18n="language">Language</span>
+              <select id="staffLang" aria-label="Language">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="mr">मराठी</option>
+              </select>
+            </label>
+            <span id="user"></span>
+          </span>
         </header>
         <main class="content">
-          <h1>Availability Management</h1>
+          <h1 data-i18n="availabilityManagement">Availability Management</h1>
           <div class="panel">
             <h2 id="astatus">Available</h2>
             <button class="btn" id="toggle">Set Unavailable</button>
@@ -34,6 +44,7 @@
     </div>
     <div id="toast"></div>
     <script src="../js/app.js"></script>
+    <script src="../js/staff-i18n.js"></script>
     <script src="../js/staff.js"></script>
   </body>
 </html>
