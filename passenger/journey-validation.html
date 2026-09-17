@@ -38,9 +38,11 @@
             booking any accessibility service or uploading waste-disposal
             images/proof.
           </p>
-          <div class="grid2">
+          <div class="grid2 equal pair-boxes">
             <div class="panel">
-              <div id="status" class="notice">Enter your journey details.</div>
+              <div id="status" class="notice">
+                Enter your 10-digit PNR to fetch journey details.
+              </div>
               <form id="journeyForm">
                 <label
                   >PNR Number<input
@@ -51,43 +53,18 @@
                     placeholder="10-digit PNR" /><span
                     class="field-error"
                     id="jpnrError"
-                  ></span></label
-                ><label
-                  >Train Number<input
-                    id="jtrain"
-                    inputmode="numeric"
-                    maxlength="5"
-                    pattern="[0-9]{5}"
-                    required
-                    placeholder="5-digit train number" /><span
-                    class="field-error"
-                    id="jtrainError"
-                  ></span></label
-                ><label
-                  >Journey Date<input id="jdate" type="date" required /></label
-                ><label
-                  >Station<select id="jstation">
-                    <option>Mumbai Central</option>
-                    <option>Thane</option>
-                    <option>Pune Junction</option>
-                  </select></label
-                ><label
-                  >Platform Number<input
-                    id="jplatform"
-                    inputmode="numeric"
-                    maxlength="2"
-                    placeholder="Enter platform number"
-                    required /><span
-                    class="field-error"
-                    id="jplatformError"
-                  ></span></label
-                ><button class="btn full">Validate Journey</button>
+                  ></span
+                ></label>
+                <div id="journeyDetails" class="fetched-details hidden"></div>
+                <button class="btn full" id="validateJourney" type="submit">
+                  Validate Journey
+                </button>
               </form>
             </div>
             <div class="panel">
               <h2>Access Rules</h2>
               <p>✓ Login is required.</p>
-              <p>✓ Valid PNR and train details are required.</p>
+              <p>✓ Enter a valid PNR to fetch train, station and boarding date.</p>
               <p class="muted">Demo PNRs: 4521987630, 6109873421, 8234561907</p>
               <p>✓ A validated journey unlocks service booking.</p>
               <p>✓ The same validation unlocks Waste Disposal image upload.</p>
@@ -107,66 +84,91 @@
         $("#user").textContent = u.name;
         $("#menu").onclick = () =>
           document.querySelector("aside").classList.toggle("open");
-        let today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let minDate = today.toISOString().split("T")[0];
-        $("#jdate").setAttribute("min", minDate);
+        let ticket = null;
+        function renderTicket(t) {
+          ticket = t;
+          const box = $("#journeyDetails");
+          if (!t) {
+            box.classList.add("hidden");
+            box.innerHTML = "";
+            return;
+          }
+          box.classList.remove("hidden");
+          box.innerHTML = [
+            ["Train Number", t.train],
+            ["Date of boarding", t.date],
+            ["Boarding time", t.time || "—"],
+            ["Station", t.station],
+            ["Platform", t.platform],
+            ["From", t.from || t.station],
+            ["To", t.to || "—"],
+            ["Coach / Class", [t.coach, t.className].filter(Boolean).join(" · ") || "—"],
+          ]
+            .map(
+              ([label, value]) =>
+                `<div><span>${label}</span><b>${escHtml(value)}</b></div>`,
+            )
+            .join("");
+        }
+        function fetchPnr() {
+          const p = $("#jpnr").value.trim();
+          const pnrErr = demoPnrError(p);
+          if (pnrErr) {
+            renderTicket(null);
+            return pnrErr;
+          }
+          renderTicket(findDemoPnr(p));
+          return "";
+        }
         let j = journeyValidation();
         if (j) {
           $("#jpnr").value = j.pnr;
-          $("#jtrain").value = j.train;
-          $("#jdate").value = j.date;
-          $("#jstation").value = j.station;
-          $("#jplatform").value = j.platform;
+          const t = findDemoPnr(j.pnr) || {
+            pnr: j.pnr,
+            train: j.train,
+            date: j.date,
+            time: j.time,
+            station: j.station,
+            platform: j.platform,
+            from: j.from,
+            to: j.to,
+            coach: j.coach,
+            className: j.className,
+          };
+          renderTicket(t);
           $("#status").textContent =
             "✓ Journey already validated. You can update it below.";
         }
         bindDigits($("#jpnr"), 10);
-        bindDigits($("#jtrain"), 5);
-        bindDigits($("#jplatform"), 2);
-        $("#jpnr").addEventListener("input", () =>
-          setFieldError("#jpnrError", ""),
-        );
-        $("#jtrain").addEventListener("input", () =>
-          setFieldError("#jtrainError", ""),
-        );
-        $("#jplatform").addEventListener("input", () =>
-          setFieldError("#jplatformError", ""),
-        );
+        $("#jpnr").addEventListener("input", () => {
+          setFieldError("#jpnrError", "");
+          const p = $("#jpnr").value.replace(/\D/g, "");
+          if (p.length === 10) {
+            const err = fetchPnr();
+            if (err) setFieldError("#jpnrError", err);
+          } else renderTicket(null);
+        });
         $("#journeyForm").onsubmit = (e) => {
           e.preventDefault();
           setFieldError("#jpnrError", "");
-          setFieldError("#jtrainError", "");
-          setFieldError("#jplatformError", "");
-          let p = $("#jpnr").value.trim();
-          const pnrErr = demoPnrError(p);
-          if (pnrErr) return setFieldError("#jpnrError", pnrErr);
-          const trainErr = trainNumberError($("#jtrain").value);
-          if (trainErr) return setFieldError("#jtrainError", trainErr);
-          const platErr = platformError(
-            $("#jplatform").value,
-            "Platform number",
-          );
-          if (platErr) return setFieldError("#jplatformError", platErr);
-          if (!$("#jdate").value)
-            return toast("Enter train number and journey date.");
-          let d = new Date($("#jdate").value);
-          let td = new Date();
-          td.setHours(0, 0, 0, 0);
-          if (d < td)
-            return toast(
-              "Journey date cannot be in the past. Please select today or a future date.",
-            );
+          const err = fetchPnr();
+          if (err) return setFieldError("#jpnrError", err);
+          if (!ticket) return setFieldError("#jpnrError", "PNR details could not be fetched.");
           let a = get("journeyValidations"),
             old = a.findIndex((x) => x.passengerId === u.id),
             v = {
               id: id("JV-"),
               passengerId: u.id,
-              pnr: p,
-              train: $("#jtrain").value.replace(/\D/g, "").slice(0, 5),
-              date: $("#jdate").value,
-              station: $("#jstation").value,
-              platform: $("#jplatform").value.replace(/\D/g, "").slice(0, 2),
+              pnr: ticket.pnr,
+              train: ticket.train,
+              date: ticket.date,
+              time: ticket.time || "",
+              station: ticket.station,
+              platform: String(ticket.platform),
+              from: ticket.from || ticket.station,
+              to: ticket.to || "",
+              coach: ticket.coach || "",
+              className: ticket.className || "",
               valid: true,
               validatedAt: new Date().toISOString(),
             };

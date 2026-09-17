@@ -33,10 +33,19 @@
         </header>
         <main class="content">
           <h1>Feedback & Complaint</h1>
-          <div class="grid2">
+          <div class="grid2 equal pair-boxes">
             <div class="panel">
               <form id="feedback">
                 <label
+                  >Type<select id="entryType">
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint">Complaint</option>
+                  </select></label
+                ><label
+                  >Booking ID<select id="bookingId">
+                    <option value="">Select a booking</option>
+                  </select><span class="field-error" id="bookingError"></span></label
+                ><label
                   >Rating<select id="rating">
                     <option>5</option>
                     <option>4</option>
@@ -64,7 +73,7 @@
                 <input
                   id="listSearch"
                   type="search"
-                  placeholder="Search complaint ID or subject"
+                  placeholder="Search complaint ID, booking ID or subject"
                 />
               </div>
               <div id="complaints"></div>

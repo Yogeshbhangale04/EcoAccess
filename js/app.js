@@ -113,6 +113,15 @@ function openDetailsModal({ title, fields }) {
 }
 
 /* Number / alphabet field helpers used on booking and feedback forms */
+function complaintBookingId(x) {
+  if (x && x.bookingId) return x.bookingId;
+  const pid = x && x.passengerId;
+  if (!pid) return "";
+  const list = get("bookings", [])
+    .filter((b) => b.passengerId === pid)
+    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  return (list[0] && list[0].id) || "";
+}
 function bindDigits(el, maxLen) {
   if (!el || el.dataset.digitsBound) return;
   el.dataset.digitsBound = "1";
@@ -368,13 +377,36 @@ const DEMO_PNRS = [
     train: "12951",
     station: "Mumbai Central",
     platform: "4",
+    date: "2026-09-20",
+    time: "10:30",
+    from: "Mumbai Central",
+    to: "New Delhi",
+    coach: "B2",
+    className: "3A",
   },
-  { pnr: "6109873421", train: "11010", station: "Thane", platform: "2" },
+  {
+    pnr: "6109873421",
+    train: "11010",
+    station: "Thane",
+    platform: "2",
+    date: "2026-09-22",
+    time: "16:00",
+    from: "Thane",
+    to: "Pune Junction",
+    coach: "D1",
+    className: "CC",
+  },
   {
     pnr: "8234561907",
     train: "12127",
     station: "Pune Junction",
     platform: "1",
+    date: "2026-09-25",
+    time: "08:15",
+    from: "Pune Junction",
+    to: "Mumbai CSMT",
+    coach: "A1",
+    className: "2A",
   },
 ];
 

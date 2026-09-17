@@ -542,11 +542,25 @@ function initFeedback(u) {
   const state = { page: 1 };
   bindAlphaText($("#subject"));
   bindAlphaText($("#description"));
+  const bookings = get("bookings").filter((b) => b.passengerId === u.id);
+  const bookingSel = $("#bookingId");
+  if (bookingSel) {
+    bookingSel.innerHTML =
+      '<option value="">Select a booking</option>' +
+      bookings
+        .map(
+          (b) =>
+            `<option value="${escHtml(b.id)}">${escHtml(b.id)} · ${escHtml(b.service)} · ${escHtml(b.date)}</option>`,
+        )
+        .join("");
+  }
   function viewItem(x) {
     if (!x) return;
     openDetailsModal({
       title: x.id,
       fields: [
+        { label: "Type", value: x.type || "Complaint" },
+        { label: "Booking ID", value: complaintBookingId(x) || "—" },
         { label: "Subject", value: x.subject },
         { label: "Description", value: x.description },
         { label: "Rating", value: x.rating },
@@ -563,7 +577,8 @@ function initFeedback(u) {
     const a = get("complaints").filter(
       (x) =>
         x.passengerId === u.id &&
-        textMatch(q, x.id, x.subject, x.status, x.description),
+        (x.type || "Complaint") === "Complaint" &&
+        textMatch(q, x.id, x.bookingId, x.subject, x.status, x.description),
     );
     const pg = paginate(a, state.page);
     state.page = pg.page;
@@ -571,7 +586,7 @@ function initFeedback(u) {
       ? pg.slice
           .map(
             (x) =>
-              `<div class="listrow"><div><b>${x.id}</b> · ${escHtml(x.subject)}<br><span class="badge">${x.status}</span></div><button type="button" class="btn sm outline" data-view-complaint="${x.id}">View</button></div>`,
+              `<div class="listrow"><div><b>${x.id}</b> · ${escHtml(x.subject)}<br><span class="muted">Booking ${escHtml(complaintBookingId(x) || "—")}</span> · <span class="badge">${x.status}</span></div><button type="button" class="btn sm outline" data-view-complaint="${x.id}">View</button></div>`,
           )
           .join("")
       : '<p class="muted">No complaints.</p>';
@@ -584,26 +599,36 @@ function initFeedback(u) {
   });
   $("#feedback").onsubmit = (e) => {
     e.preventDefault();
+    setFieldError("#bookingError", "");
     setFieldError("#subjectError", "");
     setFieldError("#descriptionError", "");
+    const type = $("#entryType")?.value === "Complaint" ? "Complaint" : "Feedback";
+    let bookingId = ($("#bookingId")?.value || "").trim();
+    if (!bookingId && bookings.length) bookingId = bookings[0].id;
+    if (type === "Complaint" && !bookingId)
+      return setFieldError("#bookingError", "Select the passenger booking ID.");
     const subjectErr = alphaTextError($("#subject").value, "Subject");
     if (subjectErr) return setFieldError("#subjectError", subjectErr);
     const descErr = alphaTextError($("#description").value, "Description");
     if (descErr) return setFieldError("#descriptionError", descErr);
     let a = get("complaints");
     a.push({
-      id: id("CP-"),
+      id: id(type === "Complaint" ? "CP-" : "FB-"),
+      type,
       passengerId: u.id,
       passenger: u.name,
+      bookingId,
       rating: +$("#rating").value,
       subject: $("#subject").value.replace(/\s+/g, " ").trim(),
       description: $("#description").value.replace(/\s+/g, " ").trim(),
-      status: "Open",
+      status: type === "Complaint" ? "Open" : "Submitted",
       createdAt: Date.now(),
     });
     set("complaints", a);
-    toast("Complaint submitted.");
+    toast(type === "Complaint" ? "Complaint submitted." : "Feedback submitted.");
     e.target.reset();
+    if (bookingSel) bookingSel.value = "";
+    if ($("#entryType")) $("#entryType").value = "Feedback";
     draw();
   };
   attachList("#listSearch", "#listPager", state, draw);

@@ -517,19 +517,20 @@ function complaints() {
     const q = listQuery("#listSearch");
     const a = get("complaints").filter(
       (x) =>
+        (x.type || "Complaint") === "Complaint" &&
         x.status !== "Closed" &&
-        textMatch(q, x.id, x.passenger, x.subject, x.status, x.description),
+        textMatch(q, x.id, x.passenger, complaintBookingId(x), x.subject, x.status, x.description),
     );
     const pg = paginate(a, state.page);
     state.page = pg.page;
     $("#adminComplaints").innerHTML = pg.slice.length
-      ? pg.slice
+      ? `<div class="table-wrap"><table><thead><tr><th>Complaint ID</th><th>Booking ID</th><th>Passenger</th><th>Subject</th><th>Status</th><th></th></tr></thead><tbody>${pg.slice
           .map((x) => {
             const open = x.status === "Open";
             const actions = `<div class="act-btns"><button type="button" class="btn outline sm" data-view-comp="${x.id}">View</button>${open ? `<button type="button" class="btn sm" data-comp="${x.id}" data-comp-status="Resolved">Resolve</button>` : ""}<button type="button" class="btn outline sm" data-comp="${x.id}" data-comp-status="Closed">Close</button></div>`;
-            return `<div class="listrow"><div><b>${x.id}</b> · ${escHtml(x.passenger)} · <span class="badge">${escHtml(x.status)}</span><br><b>${escHtml(x.subject)}</b><p class="muted complaint-preview">${escHtml(x.description || "No description.")}</p></div>${actions}</div>`;
+            return `<tr><td><b>${escHtml(x.id)}</b></td><td><b>${escHtml(complaintBookingId(x) || "—")}</b></td><td>${escHtml(x.passenger)}</td><td>${escHtml(x.subject)}</td><td><span class="badge">${escHtml(x.status)}</span></td><td>${actions}</td></tr>`;
           })
-          .join("")
+          .join("")}</tbody></table></div>`
       : '<p class="muted">No open complaints.</p>';
     fillPager("#listPager", pg.page, pg.empty ? 0 : pg.pages);
   }
@@ -541,6 +542,8 @@ function complaints() {
       openDetailsModal({
         title: x.id,
         fields: [
+          { label: "Type", value: x.type || "Complaint" },
+          { label: "Booking ID", value: complaintBookingId(x) || "—" },
           { label: "Passenger", value: x.passenger },
           { label: "Subject", value: x.subject },
           { label: "Description", value: x.description || "No description." },
