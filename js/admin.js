@@ -106,7 +106,7 @@ function staff() {
       id: id("S"),
       employeeId: id("STF"),
       name: res.name,
-      password: "Staff@123",
+      password: DEFAULT_PASSWORD,
       role: res.role || "Porter",
       status: "Available",
     });
@@ -177,7 +177,7 @@ function resources(t, el) {
       const res = await openFormModal({
         title: t === "wheelchairs" ? "Add wheelchair" : "Add vehicle",
         fields: [
-          { id: "station", label: "Station", value: "Mumbai Central" },
+          { id: "station", label: "Station", value: DUMMY.stations[0] },
           { id: "qty", label: "Quantity", value: "5", type: "number" },
         ],
         submit: "Add",
@@ -188,9 +188,26 @@ function resources(t, el) {
       if (!Number.isFinite(n) || n < 0)
         return toast("Enter a valid quantity.", true);
       const d = get("resources");
+      const stationName = res.station.replace(/\s+/g, " ").trim();
+      const qtyKey = t === "wheelchairs" ? "quantity" : "count";
+      const existing = d[t].find(
+        (x) =>
+          String(x.station || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .toLowerCase() === stationName.toLowerCase(),
+      );
+      if (existing) {
+        existing[qtyKey] = (Number(existing[qtyKey]) || 0) + n;
+        existing.station = stationName;
+        set("resources", d);
+        draw();
+        toast("Quantity added to the existing station.");
+        return;
+      }
       d[t].push({
         id: id(t === "wheelchairs" ? "WC" : "V"),
-        station: res.station,
+        station: stationName,
         ...(t === "wheelchairs" ? { quantity: n } : { count: n }),
       });
       set("resources", d);
@@ -226,6 +243,8 @@ function monitor() {
           x.status,
           x.service,
           x.train,
+          x.date,
+          x.time,
           x.staffId,
           staffDisplayName(x.staffId),
         ) &&
@@ -236,14 +255,14 @@ function monitor() {
     const rows = pg.slice.length
       ? pg.slice
           .map((x) => {
-            const when = [x.date, x.time].filter(Boolean).join(" ");
+            const when = bookingWhen(x);
             const staff = staffDisplayName(x.staffId) || "Unassigned";
             return `<tr><td><b>${x.id}</b></td><td>${escHtml(x.passenger || "—")}</td><td>${escHtml(x.service || "—")}</td><td><span class="badge">${escHtml(statusContext(x))}</span></td><td>${escHtml(x.station || "—")}</td><td>${escHtml(bookingRoute(x))}</td><td>${escHtml(when || "—")}</td><td>${escHtml(staff)}</td><td>₹${x.fare ?? 0}</td></tr>`;
           })
           .join("")
       : '<tr><td colspan="9" class="muted">No services.</td></tr>';
     $("#monitor").innerHTML =
-      `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Passenger</th><th>Service</th><th>Status</th><th>Station</th><th>Pick & Drop</th><th>Date</th><th>Staff</th><th>Fare</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Passenger</th><th>Service</th><th>Status</th><th>Station</th><th>Pick & Drop</th><th>Date & Time</th><th>Staff</th><th>Fare</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     fillPager("#listPager", pg.page, pg.empty ? 0 : pg.pages);
   }
   $("#mservice").onchange = () => {
@@ -264,15 +283,15 @@ function waste() {
     x.status = s;
     x.reviewedAt = Date.now();
     if (s === "accepted") {
-      x.rewardPoints = 20;
+      const pts = DUMMY.rewards.wastePoints;
+      x.rewardPoints = pts;
       x.remark = "";
-      let p = get("passengers"),
-        u = p.find((y) => y.id === x.passengerId);
-      if (u) {
-        u.points = (u.points || 0) + 20;
-        set("passengers", p);
-      }
-      toast("Accepted. 20 points credited to the reward wallet.");
+      const total = creditPassengerPoints(x.passengerId, pts, x.passenger);
+      toast(
+        total
+          ? "Accepted. " + pts + " points added to the reward wallet (now " + total + ")."
+          : "Accepted. Passenger wallet was not found.",
+      );
     } else {
       x.remark = remark;
       toast("Submission rejected.");
@@ -360,7 +379,7 @@ function rewards() {
           .join("")
       : '<tr><td colspan="8" class="muted">No coupons generated yet.</td></tr>';
     $("#rewards").innerHTML =
-      `<div class="notice"><b>Discount coupon rule</b><br>Passengers redeem at 100+ points. Coupon value = points × 0.5. Coupons apply to resource prebooking or train fare.</div><div class="table-wrap"><table><thead><tr><th>Coupon</th><th>Passenger</th><th>Points</th><th>Value</th><th>Remaining</th><th>Status</th><th>Issued</th><th>Expires</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      `<div class="notice"><b>Discount coupon rule</b><br>Passengers redeem at ${DUMMY.rewards.redeemMinPoints}+ points. Coupon value = points × ${DUMMY.rewards.couponPointRate}. Coupons apply to resource prebooking or train fare.</div><div class="table-wrap"><table><thead><tr><th>Coupon</th><th>Passenger</th><th>Points</th><th>Value</th><th>Remaining</th><th>Status</th><th>Issued</th><th>Expires</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     fillPager("#listPager", pg.page, pg.empty ? 0 : pg.pages);
   }
   attachList("#listSearch", "#listPager", state, draw);
@@ -497,7 +516,7 @@ function redemptions() {
     if (s === "Rejected") {
       let p = get("passengers"),
         u = p.find((y) => y.id === x.passengerId);
-      if (u) u.points += x.points;
+      if (u) u.points = (Number(u.points) || 0) + (Number(x.points) || 0);
       set("passengers", p);
     }
     set("redemptions", a);

@@ -233,35 +233,6 @@
 .booking-journey-extra {
   display: none !important;
 }
-#step1 .formgrid label:nth-child(2),
-#step1 .formgrid label:nth-child(3),
-#step1 .formgrid label:nth-child(4) {
-  display: none;
-}
-#step1 .formgrid label:first-child,
-#step1 .formgrid label:nth-child(5) {
-  font-size: 0;
-}
-#step1 .formgrid label:first-child::before {
-  content: "PNR Number";
-  font-size: 0.88rem;
-}
-#step1 .formgrid label:nth-child(5)::before {
-  content: "Platform Number";
-  font-size: 0.88rem;
-}
-#step1 .formgrid label input,
-#step1 .formgrid label select {
-  font-size: 15px;
-}
-.booking-journey-extra {
-  display: none !important;
-}
-#step1 .formgrid label:nth-child(2),
-#step1 .formgrid label:nth-child(3),
-#step1 .formgrid label:nth-child(4) {
-  display: none;
-}
 .top-actions {
   display: flex;
   align-items: center;
@@ -380,7 +351,7 @@
   box-shadow: 0 4px 12px #dc354566;
 }
 :root {
-  --blue: #2f6b4f;
+  --blue: #eb6315;
   --dark: #1b3d2f;
   --yellow: #c9a227;
   --bg: #f3eee4;
@@ -1048,6 +1019,45 @@ th {
   width: 100% !important;
   background: var(--surface);
 }
+.password-field {
+  display: flex;
+  align-items: stretch;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.password-field input {
+  flex: 1;
+  min-width: 0;
+  width: auto !important;
+  margin-top: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent;
+  padding-right: 8px;
+}
+.password-toggle {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  color: var(--dark);
+}
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
 .top-actions {
   display: flex;
   align-items: center;
@@ -1129,6 +1139,7 @@ th {
   display: block;
 }
 label.has-error > .phone-field,
+label.has-error > .password-field,
 label.has-error > input {
   border-color: var(--danger);
 }

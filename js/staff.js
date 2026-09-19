@@ -36,7 +36,7 @@ function showDetails(bookingId) {
     <div class="details-field"><label>${t("pickPlatform")}</label><div>${bookingPick(b) || t("na")}</div></div>
     <div class="details-field"><label>${t("dropPlatform")}</label><div>${bookingDrop(b) || t("na")}</div></div>
     <div class="details-field"><label>${t("trainNumber")}</label><div>${b.train}</div></div>
-    <div class="details-field"><label>${t("dateTime")}</label><div>${b.date} ${t("at")} ${b.time}</div></div>
+    <div class="details-field"><label>${t("dateTime")}</label><div>${bookingWhen(b)}</div></div>
     <div class="details-field"><label>${t("fare")}</label><div>₹${b.fare}</div></div>
     <div class="details-field"><label>${t("status")}</label><div><span class="badge">${tStatus(b.status)}</span></div></div>`;
   $("#detailsInfo").innerHTML = html;
@@ -64,7 +64,7 @@ function renderAssigned(u) {
     const a = get("bookings").filter(
       (b) =>
         (!b.staffId || b.staffId === u.employeeId) &&
-        textMatch(q, b.id, b.passenger, b.service, b.station) &&
+        textMatch(q, b.id, b.passenger, b.service, b.station, b.date, b.time) &&
         (!f || b.status === f) &&
         serviceFilterMatch(b.service, svc),
     );
@@ -74,7 +74,7 @@ function renderAssigned(u) {
       ? pg.slice
           .map(
             (b) =>
-              `<div class="listrow"><div><b>${b.id}</b> · ${b.passenger}<br>${tService(b.service)} · ${b.station} · ${b.date}<br><span class="muted">${t("pickPlatform")} ${bookingPick(b) || "—"} → ${t("dropPlatform")} ${bookingDrop(b) || "—"}</span></div><span class="badge">${tStatus(b.status)}</span><div class="act-btns">${b.status === "Booked" || b.status === "Assigned" ? `<button type="button" class="act-icon tick" title="${t("accept")}" aria-label="${t("accept")}" onclick="staffChange('${b.id}','Accepted')">✓</button><button type="button" class="act-icon cross" title="${t("reject")}" aria-label="${t("reject")}" onclick="staffChange('${b.id}','Rejected')">✕</button>` : ""}<button class="btn outline sm" onclick="showDetails('${b.id}')">${t("details")}</button></div></div>`,
+              `<div class="listrow"><div><b>${b.id}</b> · ${b.passenger}<br>${tService(b.service)} · ${b.station} · ${bookingWhen(b)}<br><span class="muted">${t("pickPlatform")} ${bookingPick(b) || "—"} → ${t("dropPlatform")} ${bookingDrop(b) || "—"}</span></div><span class="badge">${tStatus(b.status)}</span><div class="act-btns">${b.status === "Booked" || b.status === "Assigned" ? `<button type="button" class="act-icon tick" title="${t("accept")}" aria-label="${t("accept")}" onclick="staffChange('${b.id}','Accepted')">✓</button><button type="button" class="act-icon cross" title="${t("reject")}" aria-label="${t("reject")}" onclick="staffChange('${b.id}','Rejected')">✕</button>` : ""}<button class="btn outline sm" onclick="showDetails('${b.id}')">${t("details")}</button></div></div>`,
           )
           .join("")
       : `<p class="muted">${t("noBookings")}</p>`;
@@ -134,7 +134,7 @@ function renderManagement(u) {
     const a = get("bookings").filter(
       (b) =>
         b.staffId === u.employeeId &&
-        textMatch(q, b.id, b.passenger, b.service, b.status),
+        textMatch(q, b.id, b.passenger, b.service, b.status, b.date, b.time),
     );
     const pg = paginate(a, state.page);
     state.page = pg.page;
@@ -143,7 +143,7 @@ function renderManagement(u) {
           .map((b) => {
             const i = order.indexOf(b.status),
               next = order[i + 1];
-            return `<div class="listrow"><div><b>${b.id}</b><br>${b.passenger} · ${tService(b.service)}</div><span class="badge">${tStatus(b.status)}</span>${next ? `<button class="btn sm" onclick="staffChange('${b.id}','${next}')">${t("mark")} ${tStatus(next)}</button>` : ""}</div>`;
+            return `<div class="listrow"><div><b>${b.id}</b><br>${b.passenger} · ${tService(b.service)} · ${bookingWhen(b)}</div><span class="badge">${tStatus(b.status)}</span>${next ? `<button class="btn sm" onclick="staffChange('${b.id}','${next}')">${t("mark")} ${tStatus(next)}</button>` : ""}</div>`;
           })
           .join("")
       : `<p class="muted">${t("noAccepted")}</p>`;

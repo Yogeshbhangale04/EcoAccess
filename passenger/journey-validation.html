@@ -75,6 +75,8 @@
       </section>
     </div>
     <div id="toast"></div>
+    <script src="../js/dummy-data.js"></script>
+    <script src="../js/validations.js"></script>
     <script src="../js/app.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -99,7 +101,6 @@
             ["Date of boarding", t.date],
             ["Boarding time", t.time || "—"],
             ["Station", t.station],
-            ["Platform", t.platform],
             ["From", t.from || t.station],
             ["To", t.to || "—"],
             ["Coach / Class", [t.coach, t.className].filter(Boolean).join(" · ") || "—"],

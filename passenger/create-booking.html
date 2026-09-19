@@ -46,13 +46,13 @@
               <h2>Journey Details</h2>
               <div class="formgrid">
                 <label
-                  >PNR<input
+                  >PNR Number<input
                     id="pnr"
                     inputmode="numeric"
                     maxlength="10"
                     pattern="[0-9]{10}"
                     placeholder="10-digit PNR" /></label
-                ><label
+                ><label class="booking-journey-extra"
                   >Train Number<input
                     id="train"
                     inputmode="numeric"
@@ -61,21 +61,19 @@
                     placeholder="5-digit train number"
                     required /></label
                 ><label
-                  >Journey Date<input id="date" type="date" required /></label
+                  >Service Date<input id="date" type="date" required /></label
                 ><label
+                  >Service Time<input
+                    id="bookingTime"
+                    type="time"
+                    required /></label
+                ><label class="booking-journey-extra"
                   >Station<select id="station">
                     <option>Mumbai Central</option>
                     <option>Thane</option>
                     <option>Pune Junction</option>
                   </select></label
-                ><label
-                  >Platform Number<input
-                    id="platform"
-                    inputmode="numeric"
-                    maxlength="2"
-                    placeholder="Enter platform number"
-                    required
-                /></label>
+                >
               </div>
               <button class="btn" id="next1">Proceed →</button>
             </div>
@@ -83,20 +81,20 @@
               <h2>Select Service</h2>
               <div class="grid3">
                 <button class="choice" data-service="Porter">
-                  🧳<b>Porter</b><small>₹150</small></button
+                  🧳<b>Porter</b><small>₹50</small></button
                 ><button class="choice" data-service="Wheelchair">
-                  ♿<b>Wheelchair</b><small>₹100</small></button
+                  ♿<b>Wheelchair</b><small>₹50</small></button
                 ><button class="choice" data-service="Inter Vehicle">
-                  🚉<b>Inter-Platform Vehicle</b><small>₹180</small>
+                  🚉<b>Inter-Platform Vehicle</b><small>₹70</small>
                 </button>
               </div>
               <div id="porterDetails" class="porter-details hidden">
                 <label
                   >Weight Range per Bag<select id="porterWeight">
-                    <option value="150">1–10 kg · ₹150 per bag</option>
-                    <option value="200">11–20 kg · ₹200 per bag</option>
-                    <option value="275">21–30 kg · ₹275 per bag</option>
-                    <option value="350">31+ kg · ₹350 per bag</option>
+                    <option value="50">1–10 kg · ₹50 per bag</option>
+                    <option value="60">11–20 kg · ₹60 per bag</option>
+                    <option value="70">21–30 kg · ₹70 per bag</option>
+                    <option value="80">31+ kg · ₹80 per bag</option>
                   </select></label
                 >
                 <label
@@ -169,10 +167,10 @@
               <h2>Fare Calculation</h2>
               <div class="fare">
                 <span>Base <b id="base">₹0</b></span
-                ><span>Tax 5% <b id="tax">₹0</b></span>
+                ><span>GST 5% <b id="tax">₹0</b></span>
                 <div id="couponBox">
                   <label
-                    >Discount coupon
+                    >Enter coupon
                     <select id="couponSelect">
                       <option value="">No coupon</option>
                     </select>
@@ -283,6 +281,8 @@
       </section>
     </div>
     <div id="toast"></div>
+    <script src="../js/dummy-data.js"></script>
+    <script src="../js/validations.js"></script>
     <script src="../js/app.js"></script>
     <script src="../js/booking.js"></script>
     <script src="../js/porter-booking.js"></script>

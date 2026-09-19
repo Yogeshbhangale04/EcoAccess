@@ -12,6 +12,12 @@ function get(k, d = []) {
 function set(k, v) {
   localStorage.setItem(k, JSON.stringify(v));
 }
+function adoptDefaultPassword(account) {
+  if (!account) return account;
+  if (!account.password || LEGACY_PASSWORDS.includes(account.password))
+    account.password = DEFAULT_PASSWORD;
+  return account;
+}
 function id(p) {
   return p + Date.now().toString().slice(-7);
 }
@@ -42,6 +48,30 @@ function fieldOrToast(input, msg) {
 /* Session / navigation */
 function session() {
   return get("session", null);
+}
+function creditPassengerPoints(passengerId, amount, passengerName) {
+  const add = Number(amount) || 0;
+  if (!add) return 0;
+  const list = get("passengers", []);
+  const u =
+    list.find((x) => x.id === passengerId) ||
+    (passengerName
+      ? list.find((x) => x.name === passengerName)
+      : null);
+  if (!u) return 0;
+  u.points = (Number(u.points) || 0) + add;
+  set("passengers", list);
+  const sess = session();
+  if (sess && sess.role === "passenger" && sess.id === u.id) {
+    sess.points = u.points;
+    set("session", sess);
+  }
+  if (typeof fillWallet === "function") fillWallet();
+  const dash = $("#points");
+  if (dash) dash.textContent = u.points;
+  const rewards = $("#rpoints");
+  if (rewards) rewards.textContent = u.points;
+  return u.points;
 }
 function logout() {
   localStorage.removeItem("session");
@@ -142,15 +172,6 @@ function bindDigits(el, maxLen) {
       .slice(0, maxLen);
   });
 }
-function alphaTextError(value, label = "This field") {
-  const n = String(value || "")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!n) return label + " is required.";
-  if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(n))
-    return label + " can contain alphabets only.";
-  return "";
-}
 function bindAlphaText(el) {
   if (!el || el.dataset.alphaBound) return;
   el.dataset.alphaBound = "1";
@@ -161,20 +182,6 @@ function bindAlphaText(el) {
     if (el.value !== cleaned) el.value = cleaned;
   });
 }
-function trainNumberError(value) {
-  const d = String(value || "").replace(/\D/g, "");
-  if (!d) return "Train number is required.";
-  if (!/^\d{5}$/.test(d)) return "Train number must be exactly 5 digits.";
-  return "";
-}
-function platformError(value, label = "Platform number") {
-  const d = String(value || "").replace(/\D/g, "");
-  if (!d) return label + " is required.";
-  const n = Number(d);
-  if (!Number.isInteger(n) || n < 1 || n > 20)
-    return "Enter a platform number from 1 to 20.";
-  return "";
-}
 
 /* Booking pick-up / drop and staff assignment */
 function bookingPick(b) {
@@ -182,6 +189,13 @@ function bookingPick(b) {
 }
 function bookingDrop(b) {
   return String((b && b.dropPlatform) || "").trim();
+}
+function bookingWhen(b) {
+  const d = String((b && b.date) || "").trim();
+  const t = String((b && b.time) || "").trim();
+  if (!d && !t) return "—";
+  if (d && t) return d + " · " + t;
+  return d || t;
 }
 function bookingRoute(b) {
   const pick = bookingPick(b) || "—",
@@ -306,10 +320,12 @@ function attachList(searchSel, pagerSel, state, draw) {
 
 /* Reward coupons (points × 0.5, expire after 24 hours) */
 function couponValueFromPoints(pts) {
-  return Math.round(Math.max(0, Number(pts) || 0) * 0.5);
+  return Math.round(
+    Math.max(0, Number(pts) || 0) * DUMMY.rewards.couponPointRate,
+  );
 }
 function couponTtl() {
-  return 24 * 60 * 60 * 1000;
+  return DUMMY.rewards.couponTtlMs;
 }
 function couponExpiry(c) {
   return Number(c && c.expiresAt) || ((c && c.createdAt) || 0) + couponTtl();
@@ -371,57 +387,8 @@ function couponCode(value) {
     Math.random().toString(36).slice(2, 6).toUpperCase()
   );
 }
-const DEMO_PNRS = [
-  {
-    pnr: "4521987630",
-    train: "12951",
-    station: "Mumbai Central",
-    platform: "4",
-    date: "2026-09-20",
-    time: "10:30",
-    from: "Mumbai Central",
-    to: "New Delhi",
-    coach: "B2",
-    className: "3A",
-  },
-  {
-    pnr: "6109873421",
-    train: "11010",
-    station: "Thane",
-    platform: "2",
-    date: "2026-09-22",
-    time: "16:00",
-    from: "Thane",
-    to: "Pune Junction",
-    coach: "D1",
-    className: "CC",
-  },
-  {
-    pnr: "8234561907",
-    train: "12127",
-    station: "Pune Junction",
-    platform: "1",
-    date: "2026-09-25",
-    time: "08:15",
-    from: "Pune Junction",
-    to: "Mumbai CSMT",
-    coach: "A1",
-    className: "2A",
-  },
-];
 
 /* Demo tickets and journey gate before booking / waste upload */
-function findDemoPnr(value) {
-  const p = String(value || "").replace(/\D/g, "");
-  return DEMO_PNRS.find((x) => x.pnr === p) || null;
-}
-function demoPnrError(value) {
-  const p = String(value || "").replace(/\D/g, "");
-  if (!p) return "PNR is required.";
-  if (!/^\d{10}$/.test(p)) return "PNR must contain exactly 10 digits.";
-  if (!findDemoPnr(p)) return "Invalid PNR. Use one of the demo ticket PNRs.";
-  return "";
-}
 function journeyValidation() {
   let u = session();
   if (!u || u.role !== "passenger") return null;
@@ -448,157 +415,66 @@ function requireJourney() {
 }
 function seed() {
   if (get("seeded", false)) return;
-  set("passengers", [
-    {
-      id: "P1001",
-      name: "Rahul Sharma",
-      mobile: "+919876543210",
-      email: "rahul@example.com",
-      password: "Passenger@123",
-      points: 320,
-    },
-    {
-      id: "P1002",
-      name: "Anita Patil",
-      mobile: "+919988776655",
-      email: "anita@example.com",
-      password: "Passenger@123",
-      points: 180,
-    },
-  ]);
-  set("staff", [
-    {
-      id: "STF1001",
-      employeeId: "STF1001",
-      name: "Priya Joshi",
-      password: "Staff@123",
-      role: "Porter",
-      status: "Available",
-    },
-    {
-      id: "STF1002",
-      employeeId: "STF1002",
-      name: "Amit Verma",
-      password: "Staff@123",
-      role: "Wheelchair",
-      status: "Available",
-    },
-  ]);
-  set("bookings", [
-    {
-      id: "BK-240101",
-      passengerId: "P1001",
-      passenger: "Rahul Sharma",
-      service: "Wheelchair",
-      station: "Mumbai Central",
-      platform: "4",
-      date: "2026-09-15",
-      time: "10:30",
-      fare: 105,
-      status: "Assigned",
-      staffId: "STF1002",
-      train: "12951",
-    },
-    {
-      id: "BK-240102",
-      passengerId: "P1002",
-      passenger: "Anita Patil",
-      service: "Porter",
-      station: "Thane",
-      platform: "2",
-      date: "2026-09-16",
-      time: "16:00",
-      fare: 158,
-      status: "Booked",
-      staffId: "",
-      train: "11010",
-    },
-  ]);
+  const s = DUMMY.seed;
+  set("passengers", s.passengers.map((x) => ({ ...x })));
+  set("staff", s.staff.map((x) => ({ ...x })));
+  set("bookings", s.bookings.map((x) => ({ ...x })));
   set("waste", []);
   set("complaints", []);
   set("redemptions", []);
-  set("rewards", [
-    {
-      id: "R1",
-      name: "Free Tea Coupon",
-      points: 100,
-      description: "Free tea coupon",
-    },
-    {
-      id: "R2",
-      name: "Waiting Room Access",
-      points: 250,
-      description: "Waiting room access",
-    },
-    {
-      id: "R3",
-      name: "Discount Voucher",
-      points: 400,
-      description: "₹100 discount voucher",
-    },
-  ]);
+  set("rewards", s.rewards.map((x) => ({ ...x })));
   set("resources", {
-    wheelchairs: [
-      { id: "WC1", station: "Mumbai Central", quantity: 8 },
-      { id: "WC2", station: "Thane", quantity: 6 },
-    ],
-    vehicles: [
-      { id: "V1", station: "Mumbai Central", count: 6 },
-      { id: "V2", station: "Thane", count: 5 },
-    ],
+    wheelchairs: s.resources.wheelchairs.map((x) => ({ ...x })),
+    vehicles: s.resources.vehicles.map((x) => ({ ...x })),
   });
+  set("admins", s.admins.map((x) => ({ ...x })));
   set("seeded", true);
 }
 seed();
-// Always make sure demo accounts exist, even if LocalStorage was created by an older project version.
+// Ensure starter accounts exist. Default password is applied only for
+// new accounts or leftover demo passwords — never after register/reset.
 (function ensureDemoAccounts() {
   const passengers = get("passengers", []),
-    staff = get("staff", []);
+    staff = get("staff", []),
+    admins = get("admins", []);
+  const demoMobile = DUMMY.demoPassengerMobile;
   const isDemoP = (x) =>
     String(x.mobile || "")
       .replace(/\D/g, "")
-      .slice(-10) === "9876543210";
+      .slice(-10) === demoMobile;
+  const copy = (x) => ({ ...x });
   if (!passengers.some(isDemoP))
-    passengers.push({
-      id: "P1001",
-      name: "Rahul Sharma",
-      mobile: "+919876543210",
-      email: "rahul@example.com",
-      password: "Passenger@123",
-      points: 320,
-    });
-  if (!staff.some((x) => x.employeeId === "STF1001"))
-    staff.push({
-      id: "STF1001",
-      employeeId: "STF1001",
-      name: "Priya Joshi",
-      password: "Staff@123",
-      role: "Porter",
-      status: "Available",
-    });
-  if (!staff.some((x) => x.employeeId === "STF1002"))
-    staff.push({
-      id: "STF1002",
-      employeeId: "STF1002",
-      name: "Amit Verma",
-      password: "Staff@123",
-      role: "Wheelchair",
-      status: "Available",
-    });
+    passengers.push(copy(DUMMY.seed.passengers[0]));
+  DUMMY.seed.staff.forEach((row) => {
+    if (!staff.some((x) => x.employeeId === row.employeeId))
+      staff.push(copy(row));
+  });
+  if (
+    !admins.some(
+      (x) => String(x.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase(),
+    )
+  )
+    admins.push(copy(DUMMY.seed.admins[0]));
   if (!get("demoPoints320", false)) {
     const demoP = passengers.find(isDemoP);
-    if (demoP) demoP.points = 320;
+    if (demoP && (demoP.points == null || demoP.points === ""))
+      demoP.points = DUMMY.seed.passengers[0].points;
     set("demoPoints320", true);
   }
-  // Repair the demo password if it was changed/corrupted in an earlier local run.
-  const demo = staff.find((x) => x.employeeId === "STF1001");
+  const demo = staff.find((x) => x.employeeId === DUMMY.demoStaffId);
   if (demo) {
-    demo.password = "Staff@123";
     demo.role = "Porter";
     demo.status = demo.status || "Available";
   }
+  if (!get("pwdMigratedTest123", false)) {
+    passengers.forEach(adoptDefaultPassword);
+    staff.forEach(adoptDefaultPassword);
+    admins.forEach(adoptDefaultPassword);
+    set("pwdMigratedTest123", true);
+  }
   set("passengers", passengers);
   set("staff", staff);
+  set("admins", admins);
 })();
 (function migrateBookingRoute() {
   const a = get("bookings", []);
@@ -618,40 +494,6 @@ seed();
   });
   if (n) set("bookings", a);
 })();
-function digitsOnly(v) {
-  return String(v || "").replace(/\D/g, "");
-}
-function indianLocalDigits(value) {
-  const raw = String(value || "").trim();
-  let d = digitsOnly(raw);
-  const compact = raw.replace(/\s+/g, "");
-  if (/^\+91/.test(compact) || (d.length >= 12 && d.startsWith("91"))) {
-    if (d.startsWith("91")) d = d.slice(2);
-  }
-  if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
-  return d.slice(0, 10);
-}
-function storeIndianMobile(value) {
-  const d = indianLocalDigits(value);
-  return d ? "+91" + d : "";
-}
-function formatIndianMobile(value) {
-  const d = indianLocalDigits(value);
-  return d ? "+91 " + d : "";
-}
-function sameIndianMobile(a, b) {
-  const x = indianLocalDigits(a),
-    y = indianLocalDigits(b);
-  return !!x && x === y;
-}
-function indianMobileError(value) {
-  const d = indianLocalDigits(value);
-  if (!d) return "Mobile number is required.";
-  if (!/^[6-9]/.test(d))
-    return "Indian mobile number must start with 6, 7, 8 or 9.";
-  if (d.length !== 10) return "Indian mobile number must be 10 digits.";
-  return "";
-}
 (function migrateIndianMobiles() {
   const passengers = get("passengers", []);
   let changed = false;
@@ -672,29 +514,13 @@ function indianMobileError(value) {
     }
   }
 })();
-function personNameError(value) {
-  const n = String(value || "")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!n) return "Full name is required.";
-  if (n.length > 20) return "Full name cannot be more than 20 characters.";
-  if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(n))
-    return "Full name can contain alphabets and spaces only.";
-  return "";
-}
-function emailError(value) {
-  const e = String(value || "").trim();
-  if (!e) return "Email is required.";
-  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(e))
-    return "Enter a valid email address.";
-  return "";
-}
 function bindPersonName(el) {
   if (!el || el.dataset.nameBound) return;
   if ((el.tagName || "") !== "INPUT") return;
+  const max = DUMMY.limits.nameMaxLength;
   el.dataset.nameBound = "1";
-  el.setAttribute("maxlength", "20");
-  el.setAttribute("pattern", "[A-Za-z ]{1,20}");
+  el.setAttribute("maxlength", String(max));
+  el.setAttribute("pattern", `[A-Za-z ]{1,${max}}`);
   el.setAttribute("autocomplete", "name");
   el.addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -727,9 +553,9 @@ function bindPersonName(el) {
     }
     if (e.key.length === 1 && /[A-Za-z ]/.test(e.key)) {
       const next = el.value.slice(0, selStart) + e.key + el.value.slice(selEnd);
-      if (next.length > 20) {
+      if (next.length > max) {
         e.preventDefault();
-        fieldOrToast(el, "Full name cannot be more than 20 characters.");
+        fieldOrToast(el, personNameError(next) || "Full name cannot be more than " + max + " characters.");
       }
     }
   });
@@ -741,7 +567,7 @@ function bindPersonName(el) {
       .replace(/[^A-Za-z ]/g, "")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 20);
+      .slice(0, max);
     if (pasted && !cleaned) {
       fieldOrToast(el, "Full name can contain alphabets and spaces only.");
       return;
@@ -749,16 +575,16 @@ function bindPersonName(el) {
     el.value = cleaned;
     if (/[^A-Za-z ]/.test(pasted))
       fieldOrToast(el, "Full name can contain alphabets and spaces only.");
-    else if (pasted.replace(/\s+/g, " ").trim().length > 20)
-      fieldOrToast(el, "Full name cannot be more than 20 characters.");
+    else if (pasted.replace(/\s+/g, " ").trim().length > max)
+      fieldOrToast(el, "Full name cannot be more than " + max + " characters.");
   });
   el.addEventListener("input", () => {
     const raw = el.value;
     let cleaned = raw.replace(/[^A-Za-z ]/g, "").replace(/ {2,}/g, " ");
     if (cleaned.startsWith(" ")) cleaned = cleaned.trimStart();
-    if (cleaned.length > 20) {
-      cleaned = cleaned.slice(0, 20);
-      fieldOrToast(el, "Full name cannot be more than 20 characters.");
+    if (cleaned.length > max) {
+      cleaned = cleaned.slice(0, max);
+      fieldOrToast(el, "Full name cannot be more than " + max + " characters.");
     } else if (/[^A-Za-z ]/.test(raw))
       fieldOrToast(el, "Full name can contain alphabets and spaces only.");
     if (el.value !== cleaned) el.value = cleaned;
@@ -822,10 +648,10 @@ function bindIndianMobile(el, enabled) {
     if (on()) {
       el.setAttribute("type", "tel");
       el.setAttribute("inputmode", "numeric");
-      el.setAttribute("maxlength", "10");
+      el.setAttribute("maxlength", String(DUMMY.limits.mobileLength));
       el.setAttribute("pattern", "[6-9][0-9]{9}");
       el.setAttribute("autocomplete", "tel");
-      el.setAttribute("placeholder", "9876543210");
+      el.setAttribute("placeholder", DUMMY.demoPassengerMobile);
     } else {
       el.setAttribute("type", "text");
       el.removeAttribute("inputmode");
@@ -924,6 +750,35 @@ function bindIndianMobile(el, enabled) {
   });
   return applyAttrs;
 }
+function bindPasswordToggle(el) {
+  if (!el || el.dataset.pwToggleBound) return;
+  if (el.closest(".password-field")) {
+    el.dataset.pwToggleBound = "1";
+    return;
+  }
+  el.dataset.pwToggleBound = "1";
+  const wrap = document.createElement("span");
+  wrap.className = "password-field";
+  el.parentNode.insertBefore(wrap, el);
+  wrap.appendChild(el);
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "password-toggle";
+  btn.setAttribute("aria-label", "Show password");
+  const eye = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const eyeOff = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.8 21.8 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 5c7 0 11 7 11 7a21.8 21.8 0 0 1-2.16 3.19"/><path d="M1 1l22 22"/><path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"/></svg>`;
+  btn.innerHTML = eye;
+  wrap.appendChild(btn);
+  btn.addEventListener("click", () => {
+    const show = el.type === "password";
+    el.type = show ? "text" : "password";
+    btn.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    btn.innerHTML = show ? eyeOff : eye;
+  });
+}
+function bindAllPasswordToggles() {
+  document.querySelectorAll('input[type="password"]').forEach(bindPasswordToggle);
+}
 
 /* Run on every page: logout, nav highlight, login/register forms */
 document.addEventListener("DOMContentLoaded", () => {
@@ -940,6 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (session() && $("#user"))
     $("#user").textContent = session().name || "User";
   fillWallet();
+  bindAllPasswordToggles();
   if ($("#loginForm")) initLogin();
   if ($("#registerForm")) initRegister();
   bindIndianMobile($("#mobile"));
@@ -965,7 +821,7 @@ function fillWallet() {
   const s = session();
   if (s) {
     const me = get("passengers", []).find((x) => x.id === s.id) || s;
-    el.textContent = me.points || 0;
+    el.textContent = Number(me.points) || 0;
   }
   const icon = $(".wallet-icon");
   if (icon && !icon.querySelector("img"))
@@ -1024,16 +880,10 @@ function initLogin() {
               : "Email";
         $("#identity").placeholder =
           role === "passenger"
-            ? "9876543210"
+            ? DUMMY.demoPassengerMobile
             : role === "staff"
-              ? "STF1001"
-              : "admin@railease.demo";
-        $("#demo").textContent =
-          role === "passenger"
-            ? "Passenger: +91 9876543210 / Passenger@123"
-            : role === "staff"
-              ? "Staff: STF1001 / Staff@123"
-              : "Admin: admin@railease.demo / Admin@123";
+              ? DUMMY.demoStaffId
+              : ADMIN_EMAIL;
         clearLoginErrors();
         $("#identity").value = "";
         $("#password").value = "";
@@ -1071,10 +921,12 @@ function initLogin() {
       if (acc.password !== p) return showPwError("Incorrect password.");
       u = acc;
     } else {
-      if (a.toLowerCase() !== "admin@railease.demo")
-        return showIdError("No admin account found with this email.");
-      if (p !== "Admin@123") return showPwError("Incorrect password.");
-      u = { id: "ADM1", name: "Administrator" };
+      const acc = get("admins", []).find(
+        (x) => String(x.email || "").toLowerCase() === a.toLowerCase(),
+      );
+      if (!acc) return showIdError("No admin account found with this email.");
+      if (acc.password !== p) return showPwError("Incorrect password.");
+      u = acc;
     }
     set("session", { ...u, role });
     location.href =
@@ -1084,13 +936,6 @@ function initLogin() {
           ? "staff/dashboard.html"
           : "admin/dashboard.html";
   };
-}
-function passwordError(value) {
-  const p = String(value || "");
-  if (!p) return "Password is required.";
-  if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(p))
-    return "Password needs 8+ chars, upper, lower and number.";
-  return "";
 }
 function attachRegisterBlur(fields) {
   fields.forEach((f) => {
@@ -1105,6 +950,11 @@ function initRegister() {
   function err(id, msg) {
     setFieldError(id, msg);
     return false;
+  }
+  if ($("#demoOtpValue")) $("#demoOtpValue").textContent = DUMMY.demoOtp;
+  if ($("#otpInput")) {
+    $("#otpInput").placeholder = DUMMY.demoOtp;
+    $("#otpInput").maxLength = DUMMY.limits.otpLength;
   }
   function clearReg() {
     [
@@ -1150,8 +1000,9 @@ function initRegister() {
   ]);
   $("#otpInput")?.addEventListener("blur", () => {
     const otp = ($("#otpInput").value || "").trim();
-    if (!otp || !/^\d{6}$/.test(otp))
-      setFieldError("#otpError", "Enter the 6-digit OTP.");
+    if (!otp) return setFieldError("#otpError", otpError(""));
+    const bad = otpError(otp);
+    if (bad) setFieldError("#otpError", bad);
   });
   $("#registerForm").onsubmit = (e) => {
     e.preventDefault();
@@ -1187,14 +1038,16 @@ function initRegister() {
     setTimeout(() => $("#otpInput")?.focus(), 50);
   };
   $("#otpInput")?.addEventListener("input", () => {
-    $("#otpInput").value = $("#otpInput").value.replace(/\D/g, "").slice(0, 6);
+    $("#otpInput").value = $("#otpInput").value
+      .replace(/\D/g, "")
+      .slice(0, DUMMY.limits.otpLength);
     setFieldError("#otpError", "");
   });
   $("#verify").onclick = () => {
     const otp = ($("#otpInput").value || "").trim();
     setFieldError("#otpError", "");
-    if (!/^\d{6}$/.test(otp)) return err("#otpError", "Enter the 6-digit OTP.");
-    if (otp !== "123456") return err("#otpError", "Use demo OTP 123456.");
+    const bad = otpError(otp);
+    if (bad) return err("#otpError", bad);
     let u = get("pending");
     let a = get("passengers");
     a.push(u);
@@ -1306,6 +1159,24 @@ function initAdminRegister() {
         "#adminPwError",
         "Password needs 8+ chars, upper, lower and number.",
       );
+    const email = $("#adminEmail").value.trim();
+    const pw = $("#adminPw").value;
+    const admins = get("admins", []);
+    const existing = admins.find(
+      (x) => String(x.email || "").toLowerCase() === email.toLowerCase(),
+    );
+    if (existing) {
+      existing.name = $("#adminName").value.replace(/\s+/g, " ").trim();
+      existing.password = pw;
+    } else {
+      admins.push({
+        id: id("ADM"),
+        name: $("#adminName").value.replace(/\s+/g, " ").trim(),
+        email,
+        password: pw,
+      });
+    }
+    set("admins", admins);
     toast("Admin registration submitted for approval.");
   });
 }

@@ -2,35 +2,76 @@
 window.initBooking = function () {
   let service = "",
     base = 0,
+    journeyPlatform = "",
     j = journeyValidation();
+  const stationEl = $("#station");
+  if (stationEl)
+    stationEl.innerHTML = DUMMY.stations
+      .map((s) => `<option>${escHtml(s)}</option>`)
+      .join("");
   if (j) {
     $("#pnr").value = j.pnr;
     $("#train").value = j.train;
     $("#date").value = j.date;
     $("#station").value = j.station;
-    $("#platform").value = j.platform;
+    journeyPlatform = String(j.platform || "").replace(/\D/g, "");
+    if ($("#bookingTime") && j.time)
+      $("#bookingTime").value = String(j.time).slice(0, 5);
   }
-  bindDigits($("#pnr"), 10);
-  bindDigits($("#train"), 5);
-  bindDigits($("#platform"), 2);
+  const today = new Date();
+  const ymd =
+    today.getFullYear() +
+    "-" +
+    String(today.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(today.getDate()).padStart(2, "0");
+  if ($("#date")) {
+    $("#date").min = ymd;
+    if (!$("#date").value) $("#date").value = ymd;
+  }
+  $$(".choice[data-service]").forEach((b) => {
+    const fare = DUMMY.serviceFares[b.dataset.service];
+    const small = b.querySelector("small");
+    if (small && fare != null) small.textContent = "₹" + fare;
+  });
+  const weight = $("#porterWeight");
+  if (weight)
+    weight.innerHTML = DUMMY.porterRates
+      .map(
+        (r) =>
+          `<option value="${escHtml(r.value)}">${escHtml(r.label)}</option>`,
+      )
+      .join("");
+  const taxEl = $("#tax");
+  if (taxEl?.parentElement) {
+    const pct = Math.round(DUMMY.taxRate * 100);
+    taxEl.parentElement.childNodes[0].textContent =
+      DUMMY.taxName + " " + pct + "% ";
+  }
+  bindDigits($("#pnr"), DUMMY.limits.pnrLength);
+  bindDigits($("#train"), DUMMY.limits.trainNumberLength);
   bindDigits($("#pickPlatform"), 2);
   bindDigits($("#dropPlatform"), 2);
   if ($("#pnr"))
     $("#pnr").value = String($("#pnr").value || "")
       .replace(/\D/g, "")
-      .slice(0, 10);
+      .slice(0, DUMMY.limits.pnrLength);
   if ($("#train"))
     $("#train").value = String($("#train").value || "")
       .replace(/\D/g, "")
-      .slice(0, 5);
-  if ($("#platform"))
-    $("#platform").value = String($("#platform").value || "")
-      .replace(/\D/g, "")
-      .slice(0, 2);
+      .slice(0, DUMMY.limits.trainNumberLength);
+  const fareHint = document.querySelector("#step4 > p.muted");
+  if (fareHint)
+    fareHint.textContent =
+      "Redeem " +
+      DUMMY.rewards.redeemMinPoints +
+      "+ reward points to generate a coupon (points × " +
+      DUMMY.rewards.couponPointRate +
+      "). Apply it here to reduce the resource booking fare.";
   show(1);
   function unitRate() {
     if (service === "Porter") return Number($("#porterWeight").value) || 0;
-    return { Wheelchair: 100, "Inter Vehicle": 180 }[service] || 0;
+    return DUMMY.serviceFares[service] || 0;
   }
   function currentCount() {
     if (service === "Porter") return 1;
@@ -44,7 +85,7 @@ window.initBooking = function () {
     return unitRate() * currentCount();
   }
   function gross() {
-    return base + Math.round(base * 0.05);
+    return base + Math.round(base * DUMMY.taxRate);
   }
   function selectedCoupon() {
     const cid = $("#couponSelect")?.value;
@@ -64,19 +105,21 @@ window.initBooking = function () {
       typeof couponExpiry === "function"
         ? (c) => new Date(couponExpiry(c)).toLocaleString()
         : () => "";
+    const placeholder = list.length ? "Enter coupon" : "No coupon";
     sel.innerHTML =
-      '<option value="">No coupon</option>' +
+      `<option value="">${placeholder}</option>` +
       list
         .map(
           (c) =>
             `<option value="${c.id}">${c.code} · ₹${c.remaining ?? c.value} off${typeof couponExpiry === "function" ? ` · expires ${exp(c)}` : ""}</option>`,
         )
         .join("");
+    sel.disabled = !list.length;
     if (box) box.classList.toggle("hidden", false);
     sel.onchange = renderFare;
   }
   function renderFare() {
-    const tax = Math.round(base * 0.05),
+    const tax = Math.round(base * DUMMY.taxRate),
       g = base + tax,
       disc = discountFor(g),
       pay = Math.max(0, g - disc);
@@ -154,7 +197,7 @@ window.initBooking = function () {
     }
     label.classList.remove("hidden");
     const station = $("#station").value;
-    let max = 8;
+    let max = DUMMY.limits.passengerMax;
     if (service === "Wheelchair") max = availableWheelchairs(station);
     input.min = 1;
     if (max < 1) {
@@ -187,16 +230,17 @@ window.initBooking = function () {
       `${ok ? "✓" : "✗"} ${service} ${ok ? "is" : "is not"} available at ${station}.<br>${line}`;
     applyPassengerLimit();
     const pick = $("#pickPlatform");
-    if (pick && !pick.value) pick.value = $("#platform").value || "";
+    if (pick && !pick.value) pick.value = journeyPlatform;
   }
   $("#next1").onclick = () => {
     const pnrErr = demoPnrError($("#pnr").value);
     if (pnrErr) return toast(pnrErr, true);
     const trainErr = trainNumberError($("#train").value);
     if (trainErr) return toast(trainErr, true);
-    const platErr = platformError($("#platform").value, "Platform number");
-    if (platErr) return toast(platErr, true);
-    if (!$("#date").value) return toast("Enter train and journey date.");
+    const dateErr = bookingDateError($("#date").value);
+    if (dateErr) return toast(dateErr, true);
+    const timeErr = bookingTimeError($("#bookingTime")?.value);
+    if (timeErr) return toast(timeErr, true);
     show(2);
   };
   $$(".choice").forEach(
@@ -215,8 +259,14 @@ window.initBooking = function () {
     if (service === "Porter") {
       let bags = Number($("#porterBags").value),
         rate = Number($("#porterWeight").value);
-      if (!Number.isInteger(bags) || bags < 1 || bags > 20)
-        return toast("Enter between 1 and 20 bags.");
+      if (
+        !Number.isInteger(bags) ||
+        bags < 1 ||
+        bags > DUMMY.limits.porterBagsMax
+      )
+        return toast(
+          "Enter between 1 and " + DUMMY.limits.porterBagsMax + " bags.",
+        );
       if (!rate) return toast("Select a weight range.");
     }
     showAvailability();
@@ -242,7 +292,10 @@ window.initBooking = function () {
       if (service === "Inter Vehicle") {
         if (availableVehicles(station) < 1)
           return toast("No vehicles are available at this station.", true);
-        if (count > 8) return toast("Enter between 1 and 8 passengers.");
+        if (count > DUMMY.limits.passengerMax)
+          return toast(
+            "Enter between 1 and " + DUMMY.limits.passengerMax + " passengers.",
+          );
       }
       if (service === "Wheelchair") {
         const avail = availableWheelchairs(station);
@@ -292,7 +345,7 @@ window.initBooking = function () {
       pay = Math.max(0, g - disc);
     const pickVal = String($("#pickPlatform").value || "").replace(/\D/g, "");
     const dropVal = String($("#dropPlatform").value || "").replace(/\D/g, "");
-    const platVal = String($("#platform").value || pickVal).replace(/\D/g, "");
+    const platVal = pickVal || journeyPlatform;
     const member =
       typeof assignableStaff === "function" ? assignableStaff(service) : null;
     let b = {
@@ -303,7 +356,7 @@ window.initBooking = function () {
       station: $("#station").value,
       platform: platVal,
       date: $("#date").value,
-      time: "10:30",
+      time: $("#bookingTime").value,
       fare: pay,
       grossFare: g,
       discount: disc,

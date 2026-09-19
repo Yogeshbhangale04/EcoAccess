@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#upcoming").textContent = bs.filter(
       (b) => b.status !== "Completed",
     ).length;
-  if ($("#points")) $("#points").textContent = me.points || 0;
+  if ($("#points")) $("#points").textContent = Number(me.points) || 0;
   if ($("#completed"))
     $("#completed").textContent = bs.filter(
       (b) => b.status === "Completed",
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if ($("#journeyStatus")) {
     let j = journeyValidation();
     $("#journeyStatus").innerHTML = j
-      ? `✓ <b>Journey validated</b> — PNR ${j.pnr}, Train ${j.train}, ${j.date}. <a href="journey-validation.html">Update</a>`
+      ? `✓ <b>Journey validated</b> — PNR ${j.pnr}, Train ${j.train}, ${j.date}${j.time ? " · " + j.time : ""}. <a href="journey-validation.html">Update</a>`
       : `⚠ <b>Journey validation required.</b> Validate your journey before booking or uploading waste proof. <a href="journey-validation.html">Validate now →</a>`;
   }
   if ($("#upcomingList"))
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bs
         .map(
           (b) =>
-            `<p><b>${b.id}</b> · ${b.service} · ${b.date}<br><span class="badge">${b.status}</span></p>`,
+            `<p><b>${b.id}</b> · ${b.service} · ${bookingWhen(b)}<br><span class="badge">${b.status}</span></p>`,
         )
         .join("") || '<p class="muted">No bookings.</p>';
   if ($("#wasteForm")) {
@@ -314,7 +314,10 @@ function renderWaste(u) {
             st === "rejected"
               ? String(x.remark || "—").replace(/[<>]/g, "")
               : "—";
-          const pts = st === "accepted" ? "+20" : "0";
+            const pts =
+              st === "accepted"
+                ? "+" + (x.rewardPoints || DUMMY.rewards.wastePoints)
+                : "0";
           return `<tr><td><b>${x.id}</b></td><td><span class="badge ${st}">${wasteStatusLabel(x)}</span></td><td>${stamp(x.submittedAt)}</td><td><b class="${st === "accepted" ? "done" : ""}">${pts}</b></td><td>${remark}</td><td>${canView ? `<button type="button" class="btn sm outline" data-view-waste="${x.id}">View Image</button>` : '<span class="muted">No image</span>'}</td></tr>`;
         })
         .join("")
@@ -326,7 +329,7 @@ function renderWaste(u) {
       : "";
 }
 function initRewards(u) {
-  const minPts = 100;
+  const minPts = DUMMY.rewards.redeemMinPoints;
   let redeemListPage = 1;
   function me() {
     return get("passengers").find((x) => x.id === u.id) || u;
@@ -399,7 +402,7 @@ function initRewards(u) {
   }
   function draw() {
     const p = me(),
-      pts = p.points || 0,
+      pts = Number(p.points) || 0,
       val = couponValueFromPoints(pts),
       ready = pts >= minPts;
     const red = get("redemptions").filter((x) => x.passengerId === u.id);
@@ -412,7 +415,7 @@ function initRewards(u) {
     $("#rcount").textContent = red.length;
     $("#catalog").innerHTML = `<p>Your wallet has <b>${pts} points</b>.</p>
       ${ready ? `<p class="redeem-preview">You will get a <b>₹${val}</b> discount coupon</p>` : ""}
-      <p class="muted">${ready ? "Redeem now to generate the coupon. It expires 24 hours after generation. All current points will be converted." : "Redeem will be available once you reach 100 points."}</p>
+      <p class="muted">${ready ? "Redeem now to generate the coupon. It expires 24 hours after generation. All current points will be converted." : "Redeem will be available once you reach " + minPts + " points."}</p>
       <button type="button" class="btn" id="redeemNow" ${ready ? "" : "disabled"}>Redeem</button>`;
     $("#couponList").innerHTML = coupons.length
       ? coupons
@@ -436,15 +439,18 @@ function initRewards(u) {
         <small class="muted">Issued ${stamp(c.createdAt)} · ${c.pointsRedeemed} pts × 0.5</small></article>`;
           })
           .join("")
-      : '<p class="muted">No coupons yet. Redeem 100+ points to generate one.</p>';
+      : `<p class="muted">No coupons yet. Redeem ${minPts}+ points to generate one.</p>`;
     renderHistory();
   }
   $("#catalog").onclick = (e) => {
     if (e.target.id !== "redeemNow" || e.target.disabled) return;
     const p = me(),
-      pts = p.points || 0;
+      pts = Number(p.points) || 0;
     if (pts < minPts)
-      return toast("Redeem will be available once you reach 100 points.", true);
+      return toast(
+        "Redeem will be available once you reach " + minPts + " points.",
+        true,
+      );
     const value = couponValueFromPoints(pts),
       code = couponCode(value),
       createdAt = Date.now(),
@@ -550,7 +556,7 @@ function initFeedback(u) {
       bookings
         .map(
           (b) =>
-            `<option value="${escHtml(b.id)}">${escHtml(b.id)} · ${escHtml(b.service)} · ${escHtml(b.date)}</option>`,
+            `<option value="${escHtml(b.id)}">${escHtml(b.id)} · ${escHtml(b.service)} · ${escHtml(bookingWhen(b))}</option>`,
         )
         .join("");
   }
