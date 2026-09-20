@@ -238,6 +238,22 @@
   align-items: center;
   gap: 16px;
 }
+#user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+  text-align: right;
+}
+#user .user-name {
+  font-weight: 700;
+}
+#user .user-role {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: capitalize;
+}
 .wallet-nav {
   display: inline-flex;
   align-items: center;

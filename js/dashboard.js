@@ -38,7 +38,8 @@ function initProfile(u) {
     set("passengers", a);
     set("session", { role: "passenger", ...x });
     u = x;
-    $("#user").textContent = x.name;
+    if (typeof fillUserHeader === "function") fillUserHeader();
+    else $("#user").textContent = x.name;
     fill();
     showView();
     toast("Profile updated.");

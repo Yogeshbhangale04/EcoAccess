@@ -83,7 +83,8 @@
         let u = session();
         if (!u || u.role !== "passenger")
           return (location.href = "../login.html");
-        $("#user").textContent = u.name;
+        if (typeof fillUserHeader === "function") fillUserHeader();
+        else $("#user").textContent = u.name;
         $("#menu").onclick = () =>
           document.querySelector("aside").classList.toggle("open");
         let ticket = null;

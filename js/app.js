@@ -200,7 +200,7 @@ function bookingWhen(b) {
 function bookingRoute(b) {
   const pick = bookingPick(b) || "—",
     drop = bookingDrop(b) || "—";
-  return `Pickup point ${pick} → Drop platform ${drop}`;
+  return `Pickup point ${pick} → Drop point ${drop}`;
 }
 function staffDisplayName(staffId) {
   if (!staffId) return "";
@@ -820,8 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("aside")?.classList.toggle("open"),
   );
   setActiveNav();
-  if (session() && $("#user"))
-    $("#user").textContent = session().name || "User";
+  fillUserHeader();
   fillWallet();
   bindAllPasswordToggles();
   if ($("#loginForm")) initLogin();
@@ -836,6 +835,34 @@ document.addEventListener("DOMContentLoaded", () => {
   ["#name", "#pname"].forEach((s) => bindPersonName($(s)));
   ["#email", "#pemail"].forEach((s) => bindEmail($(s)));
 });
+function sessionRoleLabel(s) {
+  const r = String((s && s.role) || "").toLowerCase();
+  if (r === "passenger") return "Passenger";
+  if (r === "staff") {
+    const rec = get("staff", []).find(
+      (x) => x.employeeId && x.employeeId === s.employeeId,
+    );
+    const job = String((rec && rec.role) || s.staffRole || "").trim();
+    if (job && job.toLowerCase() !== "staff") return job;
+    return "Staff";
+  }
+  return "";
+}
+function fillUserHeader() {
+  const el = $("#user");
+  const s = session();
+  if (!el || !s) return;
+  const name = s.name || "User";
+  const role = sessionRoleLabel(s);
+  if (!role) {
+    el.textContent = name;
+    return;
+  }
+  el.innerHTML =
+    `<span class="user-name">${escHtml(name)}</span>` +
+    `<span class="user-role">${escHtml(role)}</span>`;
+}
+window.fillUserHeader = fillUserHeader;
 function fillWallet() {
   const el = $("#walletPoints");
   if (!el) return;

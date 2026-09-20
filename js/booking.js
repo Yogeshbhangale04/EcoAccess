@@ -41,7 +41,7 @@ function initTracking() {
         .join("");
     }
     $("#details").innerHTML =
-      `<p><b>Booking:</b> ${b.id}</p><p><b>Passenger:</b> ${b.passenger}</p><p><b>Number of Passenger:</b> ${b.passengerCount || 1}</p><p><b>Service:</b> ${b.service}</p><p><b>Date & Time:</b> ${bookingWhen(b)}</p><p><b>Train:</b> ${b.train}</p><p><b>Station:</b> ${b.station}</p><p><b>Pickup point:</b> ${bookingPick(b) || "—"}</p><p><b>Drop platform:</b> ${bookingDrop(b) || "—"}</p><p><b>Status:</b> ${b.status}</p><p><b>Fare:</b> ₹${b.fare}${b.discount ? ` (₹${b.discount} off with ${b.couponCode})` : ""}</p>`;
+      `<p><b>Booking:</b> ${b.id}</p><p><b>Passenger:</b> ${b.passenger}</p><p><b>Number of Passenger:</b> ${b.passengerCount || 1}</p><p><b>Service:</b> ${b.service}</p><p><b>Date & Time:</b> ${bookingWhen(b)}</p><p><b>Train:</b> ${b.train}</p><p><b>Station:</b> ${b.station}</p><p><b>Pickup point:</b> ${bookingPick(b) || "—"}</p><p><b>Drop point:</b> ${bookingDrop(b) || "—"}</p><p><b>Status:</b> ${b.status}</p><p><b>Fare:</b> ₹${b.fare}${b.discount ? ` (₹${b.discount} off with ${b.couponCode})` : ""}</p>`;
   }
   function draw() {
     const u = session(),

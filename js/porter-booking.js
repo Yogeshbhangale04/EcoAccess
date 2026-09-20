@@ -125,7 +125,7 @@ window.initBooking = function () {
     if (recap) {
       const pick = ($("#pickPlatform").value || "").trim() || "—";
       const drop = ($("#dropPlatform").value || "").trim() || "—";
-      recap.textContent = `Pickup point ${pick} → Drop platform ${drop}`;
+      recap.textContent = `Pickup point ${pick} → Drop point ${drop}`;
     }
     const tax = Math.round(base * DUMMY.taxRate),
       g = base + tax,
@@ -283,9 +283,9 @@ window.initBooking = function () {
       drop = ($("#dropPlatform").value || "").trim(),
       station = $("#station").value;
     if (!pick) return toast("Enter a pickup point.", true);
-    if (!drop) return toast("Enter a drop platform.", true);
+    if (!drop) return toast("Enter a drop point.", true);
     if (pick.toLowerCase() === drop.toLowerCase())
-      return toast("Pickup point and drop platform must be different.", true);
+      return toast("Pickup point and drop point must be different.", true);
     if (service === "Porter") {
       if (availablePorters() < 1)
         return toast("No porters are available.", true);
