@@ -64,7 +64,17 @@ function renderAssigned(u) {
     const a = get("bookings").filter(
       (b) =>
         (!b.staffId || b.staffId === u.employeeId) &&
-        textMatch(q, b.id, b.passenger, b.service, b.station, b.date, b.time) &&
+        textMatch(
+          q,
+          b.id,
+          b.passenger,
+          b.service,
+          b.station,
+          b.date,
+          b.time,
+          bookingPick(b),
+          bookingDrop(b),
+        ) &&
         (!f || b.status === f) &&
         serviceFilterMatch(b.service, svc),
     );
@@ -134,7 +144,17 @@ function renderManagement(u) {
     const a = get("bookings").filter(
       (b) =>
         b.staffId === u.employeeId &&
-        textMatch(q, b.id, b.passenger, b.service, b.status, b.date, b.time),
+        textMatch(
+          q,
+          b.id,
+          b.passenger,
+          b.service,
+          b.status,
+          b.date,
+          b.time,
+          bookingPick(b),
+          bookingDrop(b),
+        ),
     );
     const pg = paginate(a, state.page);
     state.page = pg.page;
@@ -143,7 +163,7 @@ function renderManagement(u) {
           .map((b) => {
             const i = order.indexOf(b.status),
               next = order[i + 1];
-            return `<div class="listrow"><div><b>${b.id}</b><br>${b.passenger} · ${tService(b.service)} · ${bookingWhen(b)}</div><span class="badge">${tStatus(b.status)}</span>${next ? `<button class="btn sm" onclick="staffChange('${b.id}','${next}')">${t("mark")} ${tStatus(next)}</button>` : ""}</div>`;
+            return `<div class="listrow"><div><b>${b.id}</b><br>${b.passenger} · ${tService(b.service)} · ${bookingWhen(b)}<br><span class="muted">${t("pickPlatform")} ${bookingPick(b) || "—"} → ${t("dropPlatform")} ${bookingDrop(b) || "—"}</span></div><span class="badge">${tStatus(b.status)}</span>${next ? `<button class="btn sm" onclick="staffChange('${b.id}','${next}')">${t("mark")} ${tStatus(next)}</button>` : ""}</div>`;
           })
           .join("")
       : `<p class="muted">${t("noAccepted")}</p>`;

@@ -136,18 +136,16 @@
                     required
                 /></label>
                 <label
-                  >Pick Platform<input
+                  >Pickup point<input
                     id="pickPlatform"
-                    inputmode="numeric"
-                    maxlength="2"
-                    placeholder="Enter pick platform"
+                    maxlength="80"
+                    placeholder="Enter pickup point"
                     required
                 /></label>
                 <label
                   >Drop Platform<input
                     id="dropPlatform"
-                    inputmode="numeric"
-                    maxlength="2"
+                    maxlength="80"
                     placeholder="Enter drop platform"
                     required
                 /></label>
@@ -165,6 +163,7 @@
             </div>
             <div id="step4" class="hidden">
               <h2>Fare Calculation</h2>
+              <p class="muted" id="routeRecap"></p>
               <div class="fare">
                 <span>Base <b id="base">₹0</b></span
                 ><span>GST 5% <b id="tax">₹0</b></span>

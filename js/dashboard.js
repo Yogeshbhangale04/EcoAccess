@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       bs
         .map(
           (b) =>
-            `<p><b>${b.id}</b> · ${b.service} · ${bookingWhen(b)}<br><span class="badge">${b.status}</span></p>`,
+            `<p><b>${b.id}</b> · ${b.service} · ${bookingWhen(b)}<br><span class="muted">${bookingRoute(b)}</span><br><span class="badge">${b.status}</span></p>`,
         )
         .join("") || '<p class="muted">No bookings.</p>';
   if ($("#wasteForm")) {

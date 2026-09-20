@@ -185,7 +185,7 @@ function bindAlphaText(el) {
 
 /* Booking pick-up / drop and staff assignment */
 function bookingPick(b) {
-  return String((b && (b.pickPlatform || b.platform)) || "").trim();
+  return String((b && b.pickPlatform) || "").trim();
 }
 function bookingDrop(b) {
   return String((b && b.dropPlatform) || "").trim();
@@ -200,7 +200,7 @@ function bookingWhen(b) {
 function bookingRoute(b) {
   const pick = bookingPick(b) || "—",
     drop = bookingDrop(b) || "—";
-  return `Pick ${pick} → Drop ${drop}`;
+  return `Pickup point ${pick} → Drop platform ${drop}`;
 }
 function staffDisplayName(staffId) {
   if (!staffId) return "";
@@ -489,6 +489,35 @@ seed();
       b.dropPlatform = Number.isInteger(p)
         ? String(p >= 20 ? p - 1 : p + 1)
         : String(b.pickPlatform || b.platform);
+      n++;
+    }
+  });
+  if (n) set("bookings", a);
+})();
+(function migrateSeedPickupPoints() {
+  const seed = {
+    "BK-240101": {
+      pickPlatform: "Main entrance, Gate 2",
+      dropPlatform: "Platform 5 waiting hall",
+    },
+    "BK-240102": {
+      pickPlatform: "Taxi stand",
+      dropPlatform: "Platform 1",
+    },
+  };
+  const a = get("bookings", []);
+  let n = 0;
+  a.forEach((b) => {
+    const m = seed[b.id];
+    if (!m) return;
+    const pick = String(b.pickPlatform || "").trim();
+    const drop = String(b.dropPlatform || "").trim();
+    if (!pick || pick === String(b.platform || "") || /^\d+$/.test(pick)) {
+      b.pickPlatform = m.pickPlatform;
+      n++;
+    }
+    if (!drop || /^\d+$/.test(drop)) {
+      b.dropPlatform = m.dropPlatform;
       n++;
     }
   });

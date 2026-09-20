@@ -50,8 +50,6 @@ window.initBooking = function () {
   }
   bindDigits($("#pnr"), DUMMY.limits.pnrLength);
   bindDigits($("#train"), DUMMY.limits.trainNumberLength);
-  bindDigits($("#pickPlatform"), 2);
-  bindDigits($("#dropPlatform"), 2);
   if ($("#pnr"))
     $("#pnr").value = String($("#pnr").value || "")
       .replace(/\D/g, "")
@@ -119,6 +117,12 @@ window.initBooking = function () {
     sel.onchange = renderFare;
   }
   function renderFare() {
+    const recap = $("#routeRecap");
+    if (recap) {
+      const pick = ($("#pickPlatform").value || "").trim() || "—";
+      const drop = ($("#dropPlatform").value || "").trim() || "—";
+      recap.textContent = `Pickup point ${pick} → Drop platform ${drop}`;
+    }
     const tax = Math.round(base * DUMMY.taxRate),
       g = base + tax,
       disc = discountFor(g),
@@ -229,8 +233,6 @@ window.initBooking = function () {
     $("#avail").innerHTML =
       `${ok ? "✓" : "✗"} ${service} ${ok ? "is" : "is not"} available at ${station}.<br>${line}`;
     applyPassengerLimit();
-    const pick = $("#pickPlatform");
-    if (pick && !pick.value) pick.value = journeyPlatform;
   }
   $("#next1").onclick = () => {
     const pnrErr = demoPnrError($("#pnr").value);
@@ -273,15 +275,13 @@ window.initBooking = function () {
     show(3);
   };
   $("#next3").onclick = () => {
-    const pick = $("#pickPlatform").value,
-      drop = $("#dropPlatform").value,
+    const pick = ($("#pickPlatform").value || "").trim(),
+      drop = ($("#dropPlatform").value || "").trim(),
       station = $("#station").value;
-    const pickErr = platformError(pick, "Pick platform");
-    if (pickErr) return toast(pickErr, true);
-    const dropErr = platformError(drop, "Drop platform");
-    if (dropErr) return toast(dropErr, true);
-    if (pick === drop)
-      return toast("Pick and drop platforms must be different.");
+    if (!pick) return toast("Enter a pickup point.", true);
+    if (!drop) return toast("Enter a drop platform.", true);
+    if (pick.toLowerCase() === drop.toLowerCase())
+      return toast("Pickup point and drop platform must be different.", true);
     if (service === "Porter") {
       if (availablePorters() < 1)
         return toast("No porters are available.", true);
@@ -343,9 +343,9 @@ window.initBooking = function () {
       c = selectedCoupon(),
       disc = discountFor(g),
       pay = Math.max(0, g - disc);
-    const pickVal = String($("#pickPlatform").value || "").replace(/\D/g, "");
-    const dropVal = String($("#dropPlatform").value || "").replace(/\D/g, "");
-    const platVal = pickVal || journeyPlatform;
+    const pickVal = ($("#pickPlatform").value || "").trim();
+    const dropVal = ($("#dropPlatform").value || "").trim();
+    const platVal = journeyPlatform || pickVal;
     const member =
       typeof assignableStaff === "function" ? assignableStaff(service) : null;
     let b = {

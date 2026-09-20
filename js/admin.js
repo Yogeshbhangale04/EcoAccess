@@ -247,6 +247,8 @@ function monitor() {
           x.time,
           x.staffId,
           staffDisplayName(x.staffId),
+          bookingPick(x),
+          bookingDrop(x),
         ) &&
         (!s || x.service === s),
     );
@@ -262,7 +264,7 @@ function monitor() {
           .join("")
       : '<tr><td colspan="9" class="muted">No services.</td></tr>';
     $("#monitor").innerHTML =
-      `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Passenger</th><th>Service</th><th>Status</th><th>Station</th><th>Pick & Drop</th><th>Date & Time</th><th>Staff</th><th>Fare</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      `<div class="table-wrap"><table><thead><tr><th>ID</th><th>Passenger</th><th>Service</th><th>Status</th><th>Station</th><th>Pickup & Drop</th><th>Date & Time</th><th>Staff</th><th>Fare</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     fillPager("#listPager", pg.page, pg.empty ? 0 : pg.pages);
   }
   $("#mservice").onchange = () => {
@@ -427,8 +429,8 @@ function redemptions() {
     const where = [
       b.service,
       b.station,
-      b.pickPlatform || b.dropPlatform
-        ? `Pick ${b.pickPlatform || "—"} → Drop ${b.dropPlatform || "—"}`
+      bookingPick(b) || bookingDrop(b)
+        ? bookingRoute(b)
         : `Platform ${b.platform || "—"}`,
     ]
       .filter(Boolean)

@@ -41,7 +41,7 @@ function initTracking() {
         .join("");
     }
     $("#details").innerHTML =
-      `<p><b>Booking:</b> ${b.id}</p><p><b>Passenger:</b> ${b.passenger}</p><p><b>Number of Passenger:</b> ${b.passengerCount || 1}</p><p><b>Service:</b> ${b.service}</p><p><b>Date & Time:</b> ${bookingWhen(b)}</p><p><b>Train:</b> ${b.train}</p><p><b>Station:</b> ${b.station}</p><p><b>Pick & Drop:</b> ${bookingRoute(b)}</p><p><b>Status:</b> ${b.status}</p><p><b>Fare:</b> ₹${b.fare}${b.discount ? ` (₹${b.discount} off with ${b.couponCode})` : ""}</p>`;
+      `<p><b>Booking:</b> ${b.id}</p><p><b>Passenger:</b> ${b.passenger}</p><p><b>Number of Passenger:</b> ${b.passengerCount || 1}</p><p><b>Service:</b> ${b.service}</p><p><b>Date & Time:</b> ${bookingWhen(b)}</p><p><b>Train:</b> ${b.train}</p><p><b>Station:</b> ${b.station}</p><p><b>Pickup point:</b> ${bookingPick(b) || "—"}</p><p><b>Drop platform:</b> ${bookingDrop(b) || "—"}</p><p><b>Status:</b> ${b.status}</p><p><b>Fare:</b> ₹${b.fare}${b.discount ? ` (₹${b.discount} off with ${b.couponCode})` : ""}</p>`;
   }
   function draw() {
     const u = session(),
@@ -49,7 +49,17 @@ function initTracking() {
     const a = get("bookings").filter(
       (x) =>
         x.passengerId === u.id &&
-        textMatch(q, x.id, x.service, x.status, x.station, x.date, x.time),
+        textMatch(
+          q,
+          x.id,
+          x.service,
+          x.status,
+          x.station,
+          x.date,
+          x.time,
+          bookingPick(x),
+          bookingDrop(x),
+        ),
     );
     const pg = paginate(a, state.page);
     state.page = pg.page;
@@ -57,7 +67,7 @@ function initTracking() {
       ? pg.slice
           .map(
             (b) =>
-              `<div class="listrow"><div><b>${b.id}</b> · ${b.service} · ${bookingWhen(b)}<br><span class="badge">${b.status}</span></div><button type="button" class="btn sm" data-track="${b.id}">View</button></div>`,
+              `<div class="listrow"><div><b>${b.id}</b> · ${b.service} · ${bookingWhen(b)}<br><span class="muted">${bookingRoute(b)}</span><br><span class="badge">${b.status}</span></div><button type="button" class="btn sm" data-track="${b.id}">View</button></div>`,
           )
           .join("")
       : '<p class="muted">No bookings.</p>';
