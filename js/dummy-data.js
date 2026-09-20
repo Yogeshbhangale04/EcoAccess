@@ -23,8 +23,6 @@ const DUMMY = {
   limits: {
     pnrLength: 10,
     trainNumberLength: 5,
-    platformMin: 1,
-    platformMax: 20,
     nameMaxLength: 20,
     mobileLength: 10,
     otpLength: 6,
@@ -154,26 +152,6 @@ const DUMMY = {
         train: "11010",
       },
     ],
-    rewards: [
-      {
-        id: "R1",
-        name: "Free Tea Coupon",
-        points: 100,
-        description: "Free tea coupon",
-      },
-      {
-        id: "R2",
-        name: "Waiting Room Access",
-        points: 250,
-        description: "Waiting room access",
-      },
-      {
-        id: "R3",
-        name: "Discount Voucher",
-        points: 400,
-        description: "₹100 discount voucher",
-      },
-    ],
     resources: {
       wheelchairs: [
         { id: "WC1", station: "Mumbai Central", quantity: 8 },
@@ -190,7 +168,6 @@ const DUMMY = {
 const DEFAULT_PASSWORD = DUMMY.defaultPassword;
 const LEGACY_PASSWORDS = DUMMY.legacyPasswords;
 const ADMIN_EMAIL = DUMMY.adminEmail;
-const DEMO_PNRS = DUMMY.pnrs;
 
 DUMMY.seed.passengers.forEach((x) => (x.password = DUMMY.defaultPassword));
 DUMMY.seed.staff.forEach((x) => (x.password = DUMMY.defaultPassword));

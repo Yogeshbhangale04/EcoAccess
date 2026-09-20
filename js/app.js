@@ -422,7 +422,6 @@ function seed() {
   set("waste", []);
   set("complaints", []);
   set("redemptions", []);
-  set("rewards", s.rewards.map((x) => ({ ...x })));
   set("resources", {
     wheelchairs: s.resources.wheelchairs.map((x) => ({ ...x })),
     vehicles: s.resources.vehicles.map((x) => ({ ...x })),
@@ -641,7 +640,7 @@ function bindEmail(el, enabled) {
   el.setAttribute("autocomplete", "email");
   el.addEventListener("blur", () => {
     if (!on()) return;
-    if (el.closest("#registerForm,#staffRegister,#adminRegister,#otp")) return;
+    if (el.closest("#registerForm,#otp")) return;
     check();
   });
   el.addEventListener("paste", () =>
@@ -828,21 +827,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if ($("#loginForm")) initLogin();
   if ($("#registerForm")) initRegister();
   bindIndianMobile($("#mobile"));
-  bindIndianMobile($("#staffMobile"));
   bindIndianMobile($("#pmobile"));
   const syncForgot = bindIndianMobile(
     $("#fidentity"),
     () => $("#frole")?.value !== "staff",
   );
   $("#frole")?.addEventListener("change", syncForgot);
-  ["#name", "#pname", "#staffName", "#adminName"].forEach((s) =>
-    bindPersonName($(s)),
-  );
-  ["#email", "#pemail", "#staffEmail", "#adminEmail"].forEach((s) =>
-    bindEmail($(s)),
-  );
-  initStaffRegister();
-  initAdminRegister();
+  ["#name", "#pname"].forEach((s) => bindPersonName($(s)));
+  ["#email", "#pemail"].forEach((s) => bindEmail($(s)));
 });
 function fillWallet() {
   const el = $("#walletPoints");
@@ -1085,127 +1077,4 @@ function initRegister() {
     localStorage.removeItem("pending");
     location.href = "passenger/dashboard.html";
   };
-}
-function initStaffRegister() {
-  const form = $("#staffRegister");
-  if (!form) return;
-  function err(id, msg) {
-    setFieldError(id, msg);
-    return false;
-  }
-  attachRegisterBlur([
-    {
-      input: "#staffName",
-      error: "#staffNameError",
-      check: () => personNameError($("#staffName").value),
-    },
-    {
-      input: "#staffEmpId",
-      error: "#staffEmpError",
-      check: () =>
-        ($("#staffEmpId").value || "").trim() ? "" : "Employee ID is required.",
-    },
-    {
-      input: "#staffMobile",
-      error: "#staffMobileError",
-      check: () => indianMobileError($("#staffMobile").value),
-    },
-    {
-      input: "#staffEmail",
-      error: "#staffEmailError",
-      check: () => emailError($("#staffEmail").value),
-    },
-    {
-      input: "#staffPw",
-      error: "#staffPwError",
-      check: () => passwordError($("#staffPw").value),
-    },
-  ]);
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    [
-      "#staffNameError",
-      "#staffEmpError",
-      "#staffMobileError",
-      "#staffEmailError",
-      "#staffPwError",
-    ].forEach((s) => setFieldError(s, ""));
-    const n = personNameError($("#staffName").value);
-    if (n) return err("#staffNameError", n);
-    if (!($("#staffEmpId").value || "").trim())
-      return err("#staffEmpError", "Employee ID is required.");
-    const mobileErr = indianMobileError($("#staffMobile").value);
-    if (mobileErr) return err("#staffMobileError", mobileErr);
-    const em = emailError($("#staffEmail").value);
-    if (em) return err("#staffEmailError", em);
-    const p = $("#staffPw").value;
-    if (!p) return err("#staffPwError", "Password is required.");
-    if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(p))
-      return err(
-        "#staffPwError",
-        "Password needs 8+ chars, upper, lower and number.",
-      );
-    toast("OTP verification submitted for approval.");
-  });
-}
-function initAdminRegister() {
-  const form = $("#adminRegister");
-  if (!form) return;
-  function err(id, msg) {
-    setFieldError(id, msg);
-    return false;
-  }
-  attachRegisterBlur([
-    {
-      input: "#adminName",
-      error: "#adminNameError",
-      check: () => personNameError($("#adminName").value),
-    },
-    {
-      input: "#adminEmail",
-      error: "#adminEmailError",
-      check: () => emailError($("#adminEmail").value),
-    },
-    {
-      input: "#adminPw",
-      error: "#adminPwError",
-      check: () => passwordError($("#adminPw").value),
-    },
-  ]);
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    ["#adminNameError", "#adminEmailError", "#adminPwError"].forEach((s) =>
-      setFieldError(s, ""),
-    );
-    const n = personNameError($("#adminName").value);
-    if (n) return err("#adminNameError", n);
-    const em = emailError($("#adminEmail").value);
-    if (em) return err("#adminEmailError", em);
-    const p = $("#adminPw").value;
-    if (!p) return err("#adminPwError", "Password is required.");
-    if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(p))
-      return err(
-        "#adminPwError",
-        "Password needs 8+ chars, upper, lower and number.",
-      );
-    const email = $("#adminEmail").value.trim();
-    const pw = $("#adminPw").value;
-    const admins = get("admins", []);
-    const existing = admins.find(
-      (x) => String(x.email || "").toLowerCase() === email.toLowerCase(),
-    );
-    if (existing) {
-      existing.name = $("#adminName").value.replace(/\s+/g, " ").trim();
-      existing.password = pw;
-    } else {
-      admins.push({
-        id: id("ADM"),
-        name: $("#adminName").value.replace(/\s+/g, " ").trim(),
-        email,
-        password: pw,
-      });
-    }
-    set("admins", admins);
-    toast("Admin registration submitted for approval.");
-  });
 }

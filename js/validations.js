@@ -76,24 +76,6 @@ function trainNumberError(value) {
     return "Train number must be exactly " + len + " digits.";
   return "";
 }
-function platformError(value, label = "Platform number") {
-  const d = String(value || "").replace(/\D/g, "");
-  if (!d) return label + " is required.";
-  const n = Number(d);
-  if (
-    !Number.isInteger(n) ||
-    n < DUMMY.limits.platformMin ||
-    n > DUMMY.limits.platformMax
-  )
-    return (
-      "Enter a platform number from " +
-      DUMMY.limits.platformMin +
-      " to " +
-      DUMMY.limits.platformMax +
-      "."
-    );
-  return "";
-}
 function findDemoPnr(value) {
   const p = String(value || "").replace(/\D/g, "");
   return DUMMY.pnrs.find((x) => x.pnr === p) || null;
