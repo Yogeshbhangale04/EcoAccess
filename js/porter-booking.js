@@ -32,7 +32,11 @@ window.initBooking = function () {
   $$(".choice[data-service]").forEach((b) => {
     const fare = DUMMY.serviceFares[b.dataset.service];
     const small = b.querySelector("small");
-    if (small && fare != null) small.textContent = "₹" + fare;
+    if (small && fare != null)
+      small.textContent =
+        "₹" +
+        fare +
+        (b.dataset.service === "Inter Vehicle" ? "/person" : "");
   });
   const weight = $("#porterWeight");
   if (weight)
