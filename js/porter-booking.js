@@ -120,11 +120,75 @@ window.initBooking = function () {
     if (box) box.classList.toggle("hidden", false);
     sel.onchange = renderFare;
   }
+  const OTHER_LOC = "__other__";
+  function stationLocationList(station) {
+    const map = DUMMY.stationLocations || {};
+    return map[station] || [];
+  }
+  function fillLocationSelect(sel, previous) {
+    if (!sel) return;
+    const locs = stationLocationList($("#station").value);
+    const keep = previous != null ? previous : sel.value;
+    sel.innerHTML =
+      `<option value="">Select location</option>` +
+      locs
+        .map((l) => `<option value="${escHtml(l)}">${escHtml(l)}</option>`)
+        .join("") +
+      `<option value="${OTHER_LOC}">Other</option>`;
+    if (keep && [...sel.options].some((o) => o.value === keep)) sel.value = keep;
+    else sel.value = "";
+  }
+  function fillPickupDrop() {
+    fillLocationSelect($("#pickPlatform"));
+    fillLocationSelect($("#dropPlatform"));
+    syncLocationOther();
+    syncDifferentLocations();
+  }
+  function locationChoice(selId) {
+    return ($(selId)?.value || "").trim();
+  }
+  function locationValue(selId, otherId) {
+    const v = locationChoice(selId);
+    if (v === OTHER_LOC) return ($(otherId)?.value || "").trim();
+    return v;
+  }
+  function pickValue() {
+    return locationValue("#pickPlatform", "#pickOther");
+  }
+  function dropValue() {
+    return locationValue("#dropPlatform", "#dropOther");
+  }
+  function syncLocationOther() {
+    const pickOther = locationChoice("#pickPlatform") === OTHER_LOC;
+    const dropOther = locationChoice("#dropPlatform") === OTHER_LOC;
+    $("#pickOtherWrap")?.classList.toggle("hidden", !pickOther);
+    $("#dropOtherWrap")?.classList.toggle("hidden", !dropOther);
+    $("#otherLocationNote")?.classList.toggle("hidden", !(pickOther || dropOther));
+    if (!pickOther && $("#pickOther")) $("#pickOther").value = "";
+    if (!dropOther && $("#dropOther")) $("#dropOther").value = "";
+  }
+  function syncDifferentLocations() {
+    const pick = locationChoice("#pickPlatform");
+    const drop = locationChoice("#dropPlatform");
+    $$("#pickPlatform option, #dropPlatform option").forEach((opt) => {
+      opt.disabled = false;
+    });
+    if (pick && pick !== OTHER_LOC) {
+      $$("#dropPlatform option").forEach((opt) => {
+        if (opt.value === pick) opt.disabled = true;
+      });
+    }
+    if (drop && drop !== OTHER_LOC) {
+      $$("#pickPlatform option").forEach((opt) => {
+        if (opt.value === drop) opt.disabled = true;
+      });
+    }
+  }
   function renderFare() {
     const recap = $("#routeRecap");
     if (recap) {
-      const pick = ($("#pickPlatform").value || "").trim() || "—";
-      const drop = ($("#dropPlatform").value || "").trim() || "—";
+      const pick = pickValue() || "—";
+      const drop = dropValue() || "—";
       recap.textContent = `Pickup point ${pick} → Drop point ${drop}`;
     }
     const tax = Math.round(base * DUMMY.taxRate),
@@ -237,7 +301,22 @@ window.initBooking = function () {
     $("#avail").innerHTML =
       `${ok ? "✓" : "✗"} ${service} ${ok ? "is" : "is not"} available at ${station}.<br>${line}`;
     applyPassengerLimit();
+    fillPickupDrop();
   }
+  $("#pickPlatform")?.addEventListener("change", () => {
+    syncLocationOther();
+    syncDifferentLocations();
+  });
+  $("#dropPlatform")?.addEventListener("change", () => {
+    syncLocationOther();
+    syncDifferentLocations();
+  });
+  $("#pickOther")?.addEventListener("input", () => {
+    if ($("#routeRecap")) renderFare();
+  });
+  $("#dropOther")?.addEventListener("input", () => {
+    if ($("#routeRecap")) renderFare();
+  });
   $("#next1").onclick = () => {
     const pnrErr = demoPnrError($("#pnr").value);
     if (pnrErr) return toast(pnrErr, true);
@@ -279,11 +358,17 @@ window.initBooking = function () {
     show(3);
   };
   $("#next3").onclick = () => {
-    const pick = ($("#pickPlatform").value || "").trim(),
-      drop = ($("#dropPlatform").value || "").trim(),
+    const pickSel = locationChoice("#pickPlatform"),
+      dropSel = locationChoice("#dropPlatform"),
+      pick = pickValue(),
+      drop = dropValue(),
       station = $("#station").value;
-    if (!pick) return toast("Enter a pickup point.", true);
-    if (!drop) return toast("Enter a drop point.", true);
+    if (!pickSel) return toast("Select a pickup point.", true);
+    if (pickSel === OTHER_LOC && !pick)
+      return toast("Enter the other pickup location.", true);
+    if (!dropSel) return toast("Select a drop point.", true);
+    if (dropSel === OTHER_LOC && !drop)
+      return toast("Enter the other drop location.", true);
     if (pick.toLowerCase() === drop.toLowerCase())
       return toast("Pickup point and drop point must be different.", true);
     if (service === "Porter") {
@@ -347,8 +432,8 @@ window.initBooking = function () {
       c = selectedCoupon(),
       disc = discountFor(g),
       pay = Math.max(0, g - disc);
-    const pickVal = ($("#pickPlatform").value || "").trim();
-    const dropVal = ($("#dropPlatform").value || "").trim();
+    const pickVal = pickValue();
+    const dropVal = dropValue();
     const platVal = journeyPlatform || pickVal;
     const member =
       typeof assignableStaff === "function" ? assignableStaff(service) : null;

@@ -136,19 +136,33 @@
                     required
                 /></label>
                 <label
-                  >Pickup point<input
-                    id="pickPlatform"
+                  >Pickup point
+                  <select id="pickPlatform" required>
+                    <option value="">Select location</option>
+                  </select></label
+                >
+                <label id="pickOtherWrap" class="hidden"
+                  >Other pickup location<input
+                    id="pickOther"
                     maxlength="80"
-                    placeholder="Enter pickup point"
-                    required
+                    placeholder="Describe pickup location"
                 /></label>
                 <label
-                  >Drop point<input
-                    id="dropPlatform"
+                  >Drop point
+                  <select id="dropPlatform" required>
+                    <option value="">Select location</option>
+                  </select></label
+                >
+                <label id="dropOtherWrap" class="hidden"
+                  >Other drop location<input
+                    id="dropOther"
                     maxlength="80"
-                    placeholder="Enter drop point"
-                    required
+                    placeholder="Describe drop location"
                 /></label>
+                <p id="otherLocationNote" class="notice hidden">
+                  Custom “Other” locations must be within 100 metres of the
+                  station premises. Staff will assist only in this range.
+                </p>
               </div>
               <button
                 class="back-btn"
